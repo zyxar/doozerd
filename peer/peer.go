@@ -109,17 +109,29 @@ func Main(clusterName, self, buri, rwsk, rosk string, cl *doozer.Conn, udpConn *
 		}
 
 		stop := make(chan bool, 1)
+
 		go follow(st, cl, rev+1, stop)
 
-		errs := make(chan error)
-		go func() {
-			e, ok := <-errs
-			if ok {
-				panic(e)
+		err = doozer.Walk(cl, rev, "/", func(path string, f *doozer.FileInfo, e error) (err error) {
+			if f.IsDir {
+				return
 			}
-		}()
-		doozer.Walk(cl, rev, "/", cloner{st.Ops, cl, rev}, errs)
-		close(errs)
+			if e != nil {
+				return e
+			}
+			// store.Clobber is okay here because the event
+			// has already passed through another store
+			body, _, err := cl.Get(path, &f.Rev)
+			if err != nil {
+				return
+			}
+			mut := store.MustEncodeSet(path, string(body), store.Clobber)
+			st.Ops <- store.Op{f.Rev, mut}
+			return
+		})
+		if err != nil {
+			panic(err)
+		}
 		st.Flush()
 
 		ch, err := st.Wait(store.Any, rev+1)
@@ -286,27 +298,6 @@ func follow(st *store.Store, cl *doozer.Conn, rev int64, stop chan bool) {
 		default:
 		}
 	}
-}
-
-type cloner struct {
-	ch chan<- store.Op
-	cl *doozer.Conn
-	storeRev int64
-}
-
-func (c cloner) VisitDir(path string, f *doozer.FileInfo) bool {
-	return true
-}
-
-func (c cloner) VisitFile(path string, f *doozer.FileInfo) {
-	// store.Clobber is okay here because the event
-	// has already passed through another store
-	body, _, err := c.cl.Get(path, &c.storeRev)
-	if err != nil {
-		panic(err)
-	}
-	mut := store.MustEncodeSet(path, string(body), store.Clobber)
-	c.ch <- store.Op{f.Rev, mut}
 }
 
 func setReady(p consensus.Proposer, self string) {
