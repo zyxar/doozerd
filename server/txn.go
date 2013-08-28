@@ -190,8 +190,10 @@ func (t *txn) rev() {
 }
 
 func (t *txn) self() {
+	trace := t.instrumentVerb()
 	t.resp.Value = []byte(t.c.self)
 	t.respond()
+	trace("success")
 }
 
 func (t *txn) stat() {
