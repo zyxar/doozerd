@@ -88,7 +88,7 @@ func (n node) Stat(path string) (int32, int64) {
 }
 
 func copyMap(a map[string]node) map[string]node {
-	b := make(map[string]node)
+	b := make(map[string]node, len(a))
 	for k, v := range a {
 		b[k] = v
 	}
