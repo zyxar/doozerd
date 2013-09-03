@@ -614,6 +614,18 @@ func TestWaitClose(t *testing.T) {
 	assert.Equal(t, 0, <-st.Waiting)
 }
 
+func TestWaitCancel(t *testing.T) {
+	st := New()
+	defer close(st.Ops)
+
+	ch, _ := st.Wait(Any, 1)
+	st.Wait(Any, 1)
+	assert.Equal(t, 2, <-st.Waiting)
+
+	st.Cancel(ch)
+	assert.Equal(t, 1, <-st.Waiting)
+}
+
 func TestStoreWaitWorks(t *testing.T) {
 	st := New()
 	defer close(st.Ops)
