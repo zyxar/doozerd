@@ -22,9 +22,12 @@ type conn struct {
 	waccess  bool
 	raccess  bool
 	self     string
+	closed   chan struct{}
 }
 
 func (c *conn) serve() {
+	defer close(c.closed)
+
 	for {
 		var t txn
 		t.c = c

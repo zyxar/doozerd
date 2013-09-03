@@ -53,6 +53,7 @@ func serve(nc net.Conn, st *store.Store, p consensus.Proposer, w bool, rwsk, ros
 		rwsk:     rwsk,
 		rosk:     rosk,
 		self:     self,
+		closed:   make(chan struct{}),
 	}
 
 	c.grant("") // start as if the client supplied a blank password

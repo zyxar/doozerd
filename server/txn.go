@@ -300,7 +300,14 @@ func (t *txn) wait() {
 	}
 
 	go func() {
-		ev := <-ch
+		var ev store.Event
+
+		select {
+		case ev = <-ch:
+		case <-t.c.closed:
+			return
+		}
+
 		t.resp.Path = &ev.Path
 		t.resp.Value = []byte(ev.Body)
 		t.resp.Rev = &ev.Seqn
