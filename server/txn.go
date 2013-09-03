@@ -305,6 +305,7 @@ func (t *txn) wait() {
 		select {
 		case ev = <-ch:
 		case <-t.c.closed:
+			t.c.st.Cancel(ch)
 			return
 		}
 
