@@ -40,6 +40,7 @@ var (
 	hi          = flag.Int64("hist", 2000, "length of history/revisions to keep")
 	certFile    = flag.String("tlscert", "", "TLS public certificate")
 	keyFile     = flag.String("tlskey", "", "TLS private key")
+	rev         = flag.Int64("rev", 0, "Sets the initial rev the store starts at")
 )
 
 var (
@@ -134,7 +135,7 @@ func main() {
 		cl = boot(*name, id, *laddr, *buri)
 	}
 
-	peer.Main(*name, id, *buri, rwsk, rosk, cl, usock, tsock, wsock, ns(*pi), ns(*fd), ns(*kt), *hi)
+	peer.Main(*name, id, *buri, rwsk, rosk, cl, usock, tsock, wsock, ns(*pi), ns(*fd), ns(*kt), *hi, *rev)
 	panic("main exit")
 }
 

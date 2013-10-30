@@ -69,7 +69,7 @@ type state struct {
 // Creates a new, empty data store. Mutations will be applied in order,
 // starting at number 1 (number 0 can be thought of as the creation of the
 // store).
-func New() *Store {
+func New(initialRev int64) *Store {
 	ops := make(chan Op)
 	seqns := make(chan int64)
 	waiting := make(chan int)
@@ -81,7 +81,7 @@ func New() *Store {
 		watchCh:     make(chan *watch),
 		cancelWatch: make(chan (<-chan Event)),
 		watches:     watches{},
-		state:       &state{0, emptyDir},
+		state:       &state{initialRev, emptyDir},
 		log:         map[int64]Event{},
 		cleanCh:     make(chan int64),
 		flush:       make(chan bool),

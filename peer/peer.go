@@ -43,14 +43,20 @@ func (p *proposer) Propose(v []byte) (e store.Event) {
 	return
 }
 
-func Main(clusterName, self, buri, rwsk, rosk string, cl *doozer.Conn, udpConn *net.UDPConn, listener, webListener net.Listener, pulseInterval, fillDelay, kickTimeout int64, hi int64) {
+func Main(
+	clusterName, self, buri, rwsk, rosk string,
+	cl *doozer.Conn,
+	udpConn *net.UDPConn,
+	listener, webListener net.Listener,
+	pulseInterval, fillDelay, kickTimeout, hi, initialRev int64,
+) {
 	listenAddr := listener.Addr().String()
 
 	canWrite := make(chan bool, 1)
 	in := make(chan consensus.Packet, 50)
 	out := make(chan consensus.Packet, 50)
 
-	st := store.New()
+	st := store.New(initialRev)
 	pr := &proposer{
 		seqns: make(chan int64, alpha),
 		props: make(chan *consensus.Prop),
