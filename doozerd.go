@@ -80,7 +80,7 @@ func main() {
 	}
 
 	log.SetPrefix("DOOZER ")
-	log.SetFlags(log.Ldate | log.Lmicroseconds)
+	log.SetFlags(log.Ldate | log.Lmicroseconds | log.Lshortfile)
 
 	tsock, err := net.Listen("tcp", *laddr)
 	if err != nil {
