@@ -12,7 +12,6 @@ import (
 	"log"
 	"net"
 	"os"
-	"strings"
 	"time"
 )
 
@@ -66,7 +65,7 @@ func Main(clusterName, self, buri, rwsk, rosk string, cl *doozer.Conn, udpConn *
 		m.DefRev = start
 		m.Alpha = alpha
 		m.In = in
-		m.Out = out
+		m.Out = in
 		m.Ops = st.Ops
 		m.PSeqn = pr.seqns
 		m.Props = pr.props
@@ -171,51 +170,7 @@ func Main(clusterName, self, buri, rwsk, rosk string, cl *doozer.Conn, udpConn *
 		go web.Serve(webListener)
 	}
 
-	go func() {
-		for p := range out {
-			n, err := udpConn.WriteTo(p.Data, p.Addr)
-			if err != nil {
-				log.Println(err)
-				continue
-			}
-			if n != len(p.Data) {
-				log.Println("packet len too long:", len(p.Data))
-				continue
-			}
-		}
-	}()
-
-	selfAddr, ok := udpConn.LocalAddr().(*net.UDPAddr)
-	if !ok {
-		panic("no UDP addr")
-	}
-	lv := liveness{
-		timeout: kickTimeout,
-		ival:    kickTimeout / 2,
-		self:    selfAddr,
-		shun:    shun,
-	}
-	for {
-		t := time.Now().UnixNano()
-
-		buf := make([]byte, maxUDPLen)
-		n, addr, err := udpConn.ReadFromUDP(buf)
-		if err != nil && strings.Contains(err.Error(), "use of closed network connection") {
-			log.Printf("<<<< EXITING >>>>")
-			return
-		}
-		if err != nil {
-			log.Println(err)
-			continue
-		}
-
-		buf = buf[:n]
-
-		lv.mark(addr, t)
-		lv.check(t)
-
-		in <- consensus.Packet{addr, buf}
-	}
+	select {}
 }
 
 func activate(st *store.Store, self string, c *doozer.Conn) int64 {

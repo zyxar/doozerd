@@ -1,8 +1,8 @@
 package quiet
 
 import (
-	"log"
 	"io/ioutil"
+	"log"
 )
 
 func init() {
