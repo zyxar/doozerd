@@ -54,7 +54,6 @@ func Main(
 
 	canWrite := make(chan bool, 1)
 	in := make(chan consensus.Packet, 50)
-	out := make(chan consensus.Packet, 50)
 
 	st := store.New(initialRev)
 	pr := &proposer{
