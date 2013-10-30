@@ -1,7 +1,6 @@
 package consensus
 
 import (
-	"code.google.com/p/goprotobuf/proto"
 	"container/heap"
 	"github.com/soundcloud/doozerd/store"
 	"log"
@@ -62,9 +61,8 @@ func (r *run) update(p *packet, from int, ticks heap.Interface) {
 func (r *run) broadcast(m *msg) {
 	if m != nil {
 		m.Seqn = &r.seqn
-		b, _ := proto.Marshal(m)
 		for _, addr := range r.addr {
-			r.out <- Packet{addr, b}
+			r.out <- Packet{addr, *m}
 		}
 	}
 }

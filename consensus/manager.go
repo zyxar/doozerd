@@ -1,7 +1,6 @@
 package consensus
 
 import (
-	"code.google.com/p/goprotobuf/proto"
 	"container/heap"
 	"github.com/soundcloud/doozerd/store"
 	"log"
@@ -44,7 +43,7 @@ func (p *packets) Swap(i, j int) {
 
 type Packet struct {
 	Addr *net.UDPAddr
-	Data []byte
+	msg  msg
 }
 
 type trigger struct {
@@ -230,27 +229,18 @@ func sendLearn(out chan<- Packet, p *packet, st *store.Store) {
 				Cmd:   learn,
 				Value: []byte(e.Mut),
 			}
-			buf, _ := proto.Marshal(&m)
-			out <- Packet{p.Addr, buf}
+			out <- Packet{p.Addr, m}
 		}
 	}
 }
 
-func recvPacket(q heap.Interface, P Packet) (p *packet) {
-	p = new(packet)
-	p.Addr = P.Addr
-
-	err := proto.Unmarshal(P.Data, &p.msg)
-	if err != nil {
-		log.Println(err)
+func recvPacket(q heap.Interface, P Packet) *packet {
+	if P.msg.Seqn == nil || P.msg.Cmd == nil {
+		log.Printf("discarding %#v", P)
 		return nil
 	}
 
-	if p.msg.Seqn == nil || p.msg.Cmd == nil {
-		log.Printf("discarding %#v", p)
-		return nil
-	}
-
+	p := &packet{Addr: P.Addr, msg: P.msg}
 	heap.Push(q, p)
 	return p
 }
