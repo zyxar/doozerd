@@ -1,9 +1,6 @@
 package server
 
 import (
-	"code.google.com/p/goprotobuf/proto"
-	"github.com/soundcloud/doozerd/consensus"
-	"github.com/soundcloud/doozerd/store"
 	"io"
 	"log"
 	"sort"
@@ -11,7 +8,11 @@ import (
 	"syscall"
 	"time"
 
+	"code.google.com/p/goprotobuf/proto"
 	"github.com/prometheus/client_golang/prometheus"
+
+	"github.com/soundcloud/doozerd/consensus"
+	"github.com/soundcloud/doozerd/store"
 )
 
 type txn struct {
@@ -459,12 +460,19 @@ func (t *txn) instrumentVerb() func(string) {
 
 		dur := float64(time.Since(start) / time.Microsecond)
 
-		txnLatencies.Add(map[string]string{"verb": verb, "host": host, "result": result}, dur)
+		txnLatencies.WithLabelValues(verb, host, result).Observe(dur)
 	}
 }
 
-var txnLatencies = prometheus.NewDefaultHistogram()
+var txnLatencies = prometheus.NewSummaryVec(
+	prometheus.SummaryOpts{
+		Namespace: PrometheusNamespace,
+		Name:      "txn_latency_microseconds",
+		Help:      "Transaction latencies in microseconds partitioned by operation, host, and outcome.",
+	},
+	[]string{"verb", "host", "result"},
+)
 
 func init() {
-	prometheus.Register("doozerd_txn_latencies_micros", "Transaction latencies in microseconds partitioned by operation, host, and outcome.", prometheus.NilLabels, txnLatencies)
+	prometheus.MustRegister(txnLatencies)
 }
