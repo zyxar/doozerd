@@ -5,13 +5,14 @@ import (
 	_ "expvar"
 	"flag"
 	"fmt"
-	"github.com/soundcloud/doozer"
-	"github.com/soundcloud/doozerd/peer"
 	"log"
 	"net"
 	_ "net/http/pprof"
 	"os"
 	"strconv"
+
+	"github.com/soundcloud/doozer"
+	"github.com/soundcloud/doozerd/peer"
 )
 
 const defWebPort = 8000
