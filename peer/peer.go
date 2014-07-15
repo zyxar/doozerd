@@ -53,7 +53,7 @@ func Main(
 	listenAddr := listener.Addr().String()
 
 	canWrite := make(chan bool, 1)
-	in := make(chan consensus.Packet, 50)
+	in := make(chan consensus.Packet, 1024)
 
 	st := store.New(initialRev)
 	pr := &proposer{
