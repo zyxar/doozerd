@@ -48,14 +48,14 @@ func Main(
 	cl *doozer.Conn,
 	udpConn *net.UDPConn,
 	listener, webListener net.Listener,
-	pulseInterval, fillDelay, kickTimeout, hi, initialRev int64,
+	pulseInterval, fillDelay, kickTimeout, hi int64,
+	st *store.Store,
 ) {
 	listenAddr := listener.Addr().String()
 
 	canWrite := make(chan bool, 1)
 	in := make(chan consensus.Packet, 1024)
 
-	st := store.New(initialRev)
 	pr := &proposer{
 		seqns: make(chan int64, alpha),
 		props: make(chan *consensus.Prop),

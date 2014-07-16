@@ -12,7 +12,7 @@ import (
 func TestConsensusOne(t *testing.T) {
 	self := "test"
 	const alpha = 1
-	st := store.New()
+	st := store.New(store.DefaultInitialRev)
 
 	st.Ops <- store.Op{1, store.MustEncodeSet("/ctl/node/"+self+"/addr", "1.2.3.4:5", 0)}
 	st.Ops <- store.Op{2, store.MustEncodeSet("/ctl/cal/1", self, 0)}
@@ -73,7 +73,7 @@ func TestConsensusTwo(t *testing.T) {
 	y, _ := net.ResolveUDPAddr("udp", "2.3.4.5:6")
 	ys := "2.3.4.5:6"
 	const alpha = 1
-	st := store.New()
+	st := store.New(store.DefaultInitialRev)
 
 	st.Ops <- store.Op{1, store.Nop}
 	st.Ops <- store.Op{2, store.MustEncodeSet("/ctl/node/a/addr", xs, 0)}

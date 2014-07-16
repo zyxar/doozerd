@@ -8,7 +8,7 @@ import (
 )
 
 func TestGcClean(t *testing.T) {
-	st := store.New()
+	st := store.New(store.DefaultInitialRev)
 	defer close(st.Ops)
 
 	ticker := make(chan time.Time)

@@ -19,6 +19,9 @@ const (
 // TODO revisit this when package regexp is more complete (e.g. do Unicode)
 const charPat = `[a-zA-Z0-9.\-]`
 
+// Default rev to start a Store from.
+const DefaultInitialRev = 0
+
 var pathRe = mustBuildRe(charPat)
 
 var Any = MustCompileGlob("/**")

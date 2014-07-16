@@ -7,16 +7,18 @@ import (
 	"os/exec"
 
 	"testing"
-	"time"
 )
 
 func TestDoozerNop(t *testing.T) {
-	l := mustListen()
+	var (
+		l  = mustListen()
+		u  = mustListenUDP(l.Addr().String())
+		st = store.New(store.DefaultInitialRev)
+	)
 	defer l.Close()
-	u := mustListenUDP(l.Addr().String())
 	defer u.Close()
 
-	go Main("a", "X", "", "", "", nil, u, l, nil, 1e9, 2e9, 3e9, 101)
+	go Main("a", "X", "", "", "", nil, u, l, nil, 1e9, 2e9, 3e9, 101, st)
 
 	cl := dial(l.Addr().String())
 	err := cl.Nop()
@@ -24,12 +26,16 @@ func TestDoozerNop(t *testing.T) {
 }
 
 func TestDoozerGet(t *testing.T) {
-	l := mustListen()
+	var (
+		l  = mustListen()
+		u  = mustListenUDP(l.Addr().String())
+		st = store.New(store.DefaultInitialRev)
+	)
+
 	defer l.Close()
-	u := mustListenUDP(l.Addr().String())
 	defer u.Close()
 
-	go Main("a", "X", "", "", "", nil, u, l, nil, 1e9, 2e9, 3e9, 101)
+	go Main("a", "X", "", "", "", nil, u, l, nil, 1e9, 2e9, 3e9, 101, st)
 
 	cl := dial(l.Addr().String())
 
@@ -53,12 +59,15 @@ func TestDoozerGet(t *testing.T) {
 }
 
 func TestDoozerSet(t *testing.T) {
-	l := mustListen()
+	var (
+		l  = mustListen()
+		u  = mustListenUDP(l.Addr().String())
+		st = store.New(store.DefaultInitialRev)
+	)
 	defer l.Close()
-	u := mustListenUDP(l.Addr().String())
 	defer u.Close()
 
-	go Main("a", "X", "", "", "", nil, u, l, nil, 1e9, 2e9, 3e9, 101)
+	go Main("a", "X", "", "", "", nil, u, l, nil, 1e9, 2e9, 3e9, 101, st)
 
 	cl := dial(l.Addr().String())
 
@@ -72,12 +81,15 @@ func TestDoozerSet(t *testing.T) {
 }
 
 func TestDoozerGetWithRev(t *testing.T) {
-	l := mustListen()
+	var (
+		l  = mustListen()
+		u  = mustListenUDP(l.Addr().String())
+		st = store.New(store.DefaultInitialRev)
+	)
 	defer l.Close()
-	u := mustListenUDP(l.Addr().String())
 	defer u.Close()
 
-	go Main("a", "X", "", "", "", nil, u, l, nil, 1e9, 2e9, 3e9, 101)
+	go Main("a", "X", "", "", "", nil, u, l, nil, 1e9, 2e9, 3e9, 101, st)
 
 	cl := dial(l.Addr().String())
 
@@ -104,12 +116,15 @@ func TestDoozerGetWithRev(t *testing.T) {
 }
 
 func TestDoozerWaitSimple(t *testing.T) {
-	l := mustListen()
+	var (
+		l  = mustListen()
+		u  = mustListenUDP(l.Addr().String())
+		st = store.New(store.DefaultInitialRev)
+	)
 	defer l.Close()
-	u := mustListenUDP(l.Addr().String())
 	defer u.Close()
 
-	go Main("a", "X", "", "", "", nil, u, l, nil, 1e9, 2e9, 3e9, 101)
+	go Main("a", "X", "", "", "", nil, u, l, nil, 1e9, 2e9, 3e9, 101, st)
 
 	cl := dial(l.Addr().String())
 	var rev int64 = 1
@@ -138,12 +153,15 @@ func TestDoozerWaitSimple(t *testing.T) {
 }
 
 func TestDoozerWaitWithRev(t *testing.T) {
-	l := mustListen()
+	var (
+		l  = mustListen()
+		u  = mustListenUDP(l.Addr().String())
+		st = store.New(store.DefaultInitialRev)
+	)
 	defer l.Close()
-	u := mustListenUDP(l.Addr().String())
 	defer u.Close()
 
-	go Main("a", "X", "", "", "", nil, u, l, nil, 1e9, 2e9, 3e9, 101)
+	go Main("a", "X", "", "", "", nil, u, l, nil, 1e9, 2e9, 3e9, 101, st)
 
 	cl := dial(l.Addr().String())
 
@@ -166,12 +184,15 @@ func TestDoozerWaitWithRev(t *testing.T) {
 }
 
 func TestDoozerStat(t *testing.T) {
-	l := mustListen()
+	var (
+		l  = mustListen()
+		u  = mustListenUDP(l.Addr().String())
+		st = store.New(store.DefaultInitialRev)
+	)
 	defer l.Close()
-	u := mustListenUDP(l.Addr().String())
 	defer u.Close()
 
-	go Main("a", "X", "", "", "", nil, u, l, nil, 1e9, 2e9, 3e9, 101)
+	go Main("a", "X", "", "", "", nil, u, l, nil, 1e9, 2e9, 3e9, 101, st)
 
 	cl := dial(l.Addr().String())
 
@@ -190,12 +211,15 @@ func TestDoozerStat(t *testing.T) {
 }
 
 func TestDoozerGetdirOnDir(t *testing.T) {
-	l := mustListen()
+	var (
+		l  = mustListen()
+		u  = mustListenUDP(l.Addr().String())
+		st = store.New(store.DefaultInitialRev)
+	)
 	defer l.Close()
-	u := mustListenUDP(l.Addr().String())
 	defer u.Close()
 
-	go Main("a", "X", "", "", "", nil, u, l, nil, 1e9, 2e9, 3e9, 101)
+	go Main("a", "X", "", "", "", nil, u, l, nil, 1e9, 2e9, 3e9, 101, st)
 
 	cl := dial(l.Addr().String())
 
@@ -214,12 +238,15 @@ func TestDoozerGetdirOnDir(t *testing.T) {
 }
 
 func TestDoozerGetdirOnFile(t *testing.T) {
-	l := mustListen()
+	var (
+		l  = mustListen()
+		u  = mustListenUDP(l.Addr().String())
+		st = store.New(store.DefaultInitialRev)
+	)
 	defer l.Close()
-	u := mustListenUDP(l.Addr().String())
 	defer u.Close()
 
-	go Main("a", "X", "", "", "", nil, u, l, nil, 1e9, 2e9, 3e9, 101)
+	go Main("a", "X", "", "", "", nil, u, l, nil, 1e9, 2e9, 3e9, 101, st)
 
 	cl := dial(l.Addr().String())
 
@@ -236,12 +263,15 @@ func TestDoozerGetdirOnFile(t *testing.T) {
 }
 
 func TestDoozerGetdirMissing(t *testing.T) {
-	l := mustListen()
+	var (
+		l  = mustListen()
+		u  = mustListenUDP(l.Addr().String())
+		st = store.New(store.DefaultInitialRev)
+	)
 	defer l.Close()
-	u := mustListenUDP(l.Addr().String())
 	defer u.Close()
 
-	go Main("a", "X", "", "", "", nil, u, l, nil, 1e9, 2e9, 3e9, 101)
+	go Main("a", "X", "", "", "", nil, u, l, nil, 1e9, 2e9, 3e9, 101, st)
 
 	cl := dial(l.Addr().String())
 
@@ -256,12 +286,15 @@ func TestDoozerGetdirMissing(t *testing.T) {
 }
 
 func TestDoozerGetdirOffsetLimit(t *testing.T) {
-	l := mustListen()
+	var (
+		l  = mustListen()
+		u  = mustListenUDP(l.Addr().String())
+		st = store.New(store.DefaultInitialRev)
+	)
 	defer l.Close()
-	u := mustListenUDP(l.Addr().String())
 	defer u.Close()
 
-	go Main("a", "X", "", "", "", nil, u, l, nil, 1e9, 2e9, 3e9, 101)
+	go Main("a", "X", "", "", "", nil, u, l, nil, 1e9, 2e9, 3e9, 101, st)
 
 	cl := dial(l.Addr().String())
 	cl.Set("/test/a", store.Clobber, []byte("1"))
@@ -279,88 +312,92 @@ func TestDoozerGetdirOffsetLimit(t *testing.T) {
 	assert.Equal(t, []string{"b", "c"}, names)
 }
 
-func TestPeerShun(t *testing.T) {
-	l0 := mustListen()
-	defer l0.Close()
-	a0 := l0.Addr().String()
-	u0 := mustListenUDP(a0)
-	defer u0.Close()
+// TODO(xla) Needs to be revised but liklely obsolete since the short-circuit
+// of consnesus in 8a296df.
+// func TestPeerShun(t *testing.T) {
+// 	l0 := mustListen()
+// 	defer l0.Close()
+// 	a0 := l0.Addr().String()
+// 	u0 := mustListenUDP(a0)
+// 	defer u0.Close()
+//
+// 	l1 := mustListen()
+// 	defer l1.Close()
+// 	u1 := mustListenUDP(l1.Addr().String())
+// 	defer u1.Close()
+// 	l2 := mustListen()
+// 	defer l2.Close()
+// 	u2 := mustListenUDP(l2.Addr().String())
+// 	defer u2.Close()
+//
+// 	go Main("a", "X", "", "", "", nil, u0, l0, nil, 1e8, 1e7, 1e9, 1e9, store.New(store.DefaultInitialRev))
+// 	go Main("a", "Y", "", "", "", dial(a0), u1, l1, nil, 1e8, 1e7, 1e9, 1e9, store.New(store.DefaultInitialRev))
+// 	go Main("a", "Z", "", "", "", dial(a0), u2, l2, nil, 1e8, 1e7, 1e9, 1e9, store.New(store.DefaultInitialRev))
+//
+// 	cl := dial(l0.Addr().String())
+// 	cl.Set("/ctl/cal/1", store.Missing, nil)
+// 	cl.Set("/ctl/cal/2", store.Missing, nil)
+//
+// 	waitFor(cl, "/ctl/node/X/writable")
+// 	waitFor(cl, "/ctl/node/Y/writable")
+// 	waitFor(cl, "/ctl/node/Z/writable")
+//
+// 	rev, err := cl.Set("/test", store.Clobber, nil)
+// 	if e, ok := err.(*doozer.Error); ok && e.Err == doozer.ErrReadonly {
+// 	} else if err != nil {
+// 		panic(err)
+// 	}
+//
+// 	u1.Close()
+// 	for {
+// 		ev, err := cl.Wait("/ctl/cal/*", rev)
+// 		if err != nil {
+// 			panic(err)
+// 		}
+// 		if ev.IsSet() && len(ev.Body) == 0 {
+// 			break
+// 		}
+// 		rev = ev.Rev + 1
+// 	}
+// }
 
-	l1 := mustListen()
-	defer l1.Close()
-	u1 := mustListenUDP(l1.Addr().String())
-	defer u1.Close()
-	l2 := mustListen()
-	defer l2.Close()
-	u2 := mustListenUDP(l2.Addr().String())
-	defer u2.Close()
-
-	go Main("a", "X", "", "", "", nil, u0, l0, nil, 1e8, 1e7, 1e9, 1e9)
-	go Main("a", "Y", "", "", "", dial(a0), u1, l1, nil, 1e8, 1e7, 1e9, 1e9)
-	go Main("a", "Z", "", "", "", dial(a0), u2, l2, nil, 1e8, 1e7, 1e9, 1e9)
-
-	cl := dial(l0.Addr().String())
-	cl.Set("/ctl/cal/1", store.Missing, nil)
-	cl.Set("/ctl/cal/2", store.Missing, nil)
-
-	waitFor(cl, "/ctl/node/X/writable")
-	waitFor(cl, "/ctl/node/Y/writable")
-	waitFor(cl, "/ctl/node/Z/writable")
-
-	rev, err := cl.Set("/test", store.Clobber, nil)
-	if e, ok := err.(*doozer.Error); ok && e.Err == doozer.ErrReadonly {
-	} else if err != nil {
-		panic(err)
-	}
-
-	u1.Close()
-	for {
-		ev, err := cl.Wait("/ctl/cal/*", rev)
-		if err != nil {
-			panic(err)
-		}
-		if ev.IsSet() && len(ev.Body) == 0 {
-			break
-		}
-		rev = ev.Rev + 1
-	}
-}
-
-func TestPeerLateJoin(t *testing.T) {
-	l0 := mustListen()
-	defer l0.Close()
-	a0 := l0.Addr().String()
-	u0 := mustListenUDP(a0)
-	defer u0.Close()
-
-	l1 := mustListen()
-	defer l1.Close()
-	u1 := mustListenUDP(l1.Addr().String())
-	defer u1.Close()
-
-	go Main("a", "X", "", "", "", nil, u0, l0, nil, 1e8, 1e7, 1e9, 60)
-
-	cl := dial(l0.Addr().String())
-	waitFor(cl, "/ctl/node/X/writable")
-
-	// TODO: this is set slightly higher than the hardcoded interval
-	// at which a store is cleaned.  Refactor that to be configurable
-	// so we can drop this down to something reasonable
-	time.Sleep(1100 * time.Millisecond)
-
-	go Main("a", "Y", "", "", "", dial(a0), u1, l1, nil, 1e8, 1e7, 1e9, 60)
-	rev, _ := cl.Set("/ctl/cal/1", store.Missing, nil)
-	for {
-		ev, err := cl.Wait("/ctl/node/Y/writable", rev)
-		if err != nil {
-			panic(err)
-		}
-		if ev.IsSet() && len(ev.Body) == 4 {
-			break
-		}
-		rev = ev.Rev + 1
-	}
-}
+// TODO(xla) Needs to be revised but liklely obsolete since the short-circuit
+// of consnesus in 8a296df.
+// func TestPeerLateJoin(t *testing.T) {
+// 	l0 := mustListen()
+// 	defer l0.Close()
+// 	a0 := l0.Addr().String()
+// 	u0 := mustListenUDP(a0)
+// 	defer u0.Close()
+//
+// 	l1 := mustListen()
+// 	defer l1.Close()
+// 	u1 := mustListenUDP(l1.Addr().String())
+// 	defer u1.Close()
+//
+// 	go Main("a", "X", "", "", "", nil, u0, l0, nil, 1e8, 1e7, 1e9, 60, store.New(store.DefaultInitialRev))
+//
+// 	cl := dial(l0.Addr().String())
+// 	waitFor(cl, "/ctl/node/X/writable")
+//
+// 	// TODO: this is set slightly higher than the hardcoded interval
+// 	// at which a store is cleaned.  Refactor that to be configurable
+// 	// so we can drop this down to something reasonable
+// 	time.Sleep(1100 * time.Millisecond)
+//
+// 	go Main("a", "Y", "", "", "", dial(a0), u1, l1, nil, 1e8, 1e7, 1e9, 60, store.New(store.DefaultInitialRev))
+// 	rev, _ := cl.Set("/ctl/cal/1", store.Missing, nil)
+// 	for {
+// 		ev, err := cl.Wait("/ctl/node/Y/writable", rev)
+// 		if err != nil {
+// 			panic(err)
+// 		}
+// 		if ev.IsSet() && len(ev.Body) == 4 {
+// 			break
+// 		}
+// 		rev = ev.Rev + 1
+// 	}
+// }
 
 func assertDenied(t *testing.T, err error) {
 	assert.NotEqual(t, nil, err)

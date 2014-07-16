@@ -13,6 +13,7 @@ import (
 
 	"github.com/soundcloud/doozer"
 	"github.com/soundcloud/doozerd/peer"
+	"github.com/soundcloud/doozerd/store"
 )
 
 const defWebPort = 8000
@@ -136,7 +137,25 @@ func main() {
 		cl = boot(*name, id, *laddr, *buri)
 	}
 
-	peer.Main(*name, id, *buri, rwsk, rosk, cl, usock, tsock, wsock, ns(*pi), ns(*fd), ns(*kt), *hi, *rev)
+	st := store.New(*rev)
+
+	peer.Main(
+		*name,
+		id,
+		*buri,
+		rwsk,
+		rosk,
+		cl,
+		usock,
+		tsock,
+		wsock,
+		ns(*pi),
+		ns(*fd),
+		ns(*kt),
+		*hi,
+		st,
+	)
+
 	panic("main exit")
 }
 

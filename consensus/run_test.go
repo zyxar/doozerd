@@ -91,7 +91,6 @@ func TestRunSendsCoordPacket(t *testing.T) {
 	r.out = c
 	r.addr = []*net.UDPAddr{x, y}
 
-	var got msg
 	exp := msg{
 		Seqn: proto.Int64(0),
 		Cmd:  invite,
@@ -100,9 +99,7 @@ func TestRunSendsCoordPacket(t *testing.T) {
 
 	r.update(&packet{msg: *newPropose("foo")}, -1, new(triggers))
 	<-c
-	err := proto.Unmarshal((<-c).Data, &got)
-	assert.Equal(t, nil, err)
-	assert.Equal(t, exp, got)
+	assert.Equal(t, exp, (<-c).msg)
 	assert.Equal(t, 0, len(c))
 }
 
@@ -126,7 +123,6 @@ func TestRunSendsAcceptorPacket(t *testing.T) {
 	r.out = c
 	r.addr = []*net.UDPAddr{x, y}
 
-	var got msg
 	exp := msg{
 		Seqn:  proto.Int64(0),
 		Cmd:   rsvp,
@@ -137,9 +133,7 @@ func TestRunSendsAcceptorPacket(t *testing.T) {
 
 	r.update(&packet{msg: *newInviteSeqn1(1)}, 0, new(triggers))
 	<-c
-	err := proto.Unmarshal((<-c).Data, &got)
-	assert.Equal(t, nil, err)
-	assert.Equal(t, exp, got)
+	assert.Equal(t, exp, (<-c).msg)
 	assert.Equal(t, 0, len(c))
 }
 
@@ -151,7 +145,6 @@ func TestRunSendsLearnerPacket(t *testing.T) {
 	r.addr = []*net.UDPAddr{nil, nil}
 	r.l.init(1, 1)
 
-	var got msg
 	exp := msg{
 		Seqn:  proto.Int64(0),
 		Cmd:   learn,
@@ -160,9 +153,7 @@ func TestRunSendsLearnerPacket(t *testing.T) {
 
 	r.update(&packet{msg: *newVote(1, "foo")}, 0, new(triggers))
 	assert.Equal(t, 2, len(c))
-	err := proto.Unmarshal((<-c).Data, &got)
-	assert.Equal(t, nil, err)
-	assert.Equal(t, exp, got)
+	assert.Equal(t, exp, (<-c).msg)
 }
 
 func TestRunAppliesOp(t *testing.T) {
@@ -201,10 +192,7 @@ func TestRunBroadcastThree(t *testing.T) {
 	for i := 0; i < len(r.addr); i++ {
 		p := <-c
 		addr[i] = p.Addr
-		var got msg
-		err := proto.Unmarshal(p.Data, &got)
-		assert.Equal(t, nil, err)
-		assert.Equal(t, exp, got)
+		assert.Equal(t, exp, p.msg)
 	}
 
 	assert.Equal(t, Packet{}, <-c)
@@ -237,10 +225,7 @@ func TestRunBroadcastFive(t *testing.T) {
 	for i := 0; i < len(r.addr); i++ {
 		p := <-c
 		addr[i] = p.Addr
-		var got msg
-		err := proto.Unmarshal(p.Data, &got)
-		assert.Equal(t, nil, err)
-		assert.Equal(t, exp, got)
+		assert.Equal(t, exp, p.msg)
 	}
 
 	assert.Equal(t, Packet{}, <-c)
