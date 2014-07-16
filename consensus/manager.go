@@ -2,11 +2,22 @@ package consensus
 
 import (
 	"container/heap"
-	"github.com/soundcloud/doozerd/store"
 	"log"
 	"net"
 	"sort"
 	"time"
+
+	"github.com/prometheus/client_golang/prometheus"
+
+	"github.com/soundcloud/doozerd/store"
+)
+
+var (
+	inCount = prometheus.NewGauge(prometheus.GaugeOpts{
+		Namespace: "doozerd",
+		Name:      "in_chan_length",
+		Help:      "Number of currently queued items in in chan.",
+	})
 )
 
 type packet struct {
@@ -132,6 +143,8 @@ func (m *Manager) Run() {
 	}
 
 	for {
+		inCount.Set(float64(len(m.In)))
+
 		m.Stats.Runs = len(m.run)
 		m.Stats.WaitPackets = len(m.packet)
 		m.Stats.WaitTicks = len(m.tick)
@@ -364,4 +377,8 @@ func fmtRuns(rs map[int64]*run) (s string) {
 		}
 	}
 	return s
+}
+
+func init() {
+	prometheus.MustRegister(inCount)
 }
