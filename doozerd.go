@@ -13,6 +13,7 @@ import (
 
 	"github.com/soundcloud/doozer"
 	"github.com/soundcloud/doozerd/peer"
+	"github.com/soundcloud/doozerd/solo"
 	"github.com/soundcloud/doozerd/store"
 )
 
@@ -43,6 +44,7 @@ var (
 	certFile    = flag.String("tlscert", "", "TLS public certificate")
 	keyFile     = flag.String("tlskey", "", "TLS private key")
 	rev         = flag.Int64("rev", 0, "Sets the initial rev the store starts at")
+	soloMode    = flag.Bool("solo", false, "Runs in single node mode without consensus enabled")
 )
 
 var (
@@ -139,22 +141,34 @@ func main() {
 
 	st := store.New(*rev)
 
-	peer.Main(
-		*name,
-		id,
-		*buri,
-		rwsk,
-		rosk,
-		cl,
-		usock,
-		tsock,
-		wsock,
-		ns(*pi),
-		ns(*fd),
-		ns(*kt),
-		*hi,
-		st,
-	)
+	if *soloMode {
+		solo.Main(
+			*name,
+			id,
+			cl,
+			tsock,
+			wsock,
+			st,
+			*hi,
+		)
+	} else {
+		peer.Main(
+			*name,
+			id,
+			*buri,
+			rwsk,
+			rosk,
+			cl,
+			usock,
+			tsock,
+			wsock,
+			ns(*pi),
+			ns(*fd),
+			ns(*kt),
+			*hi,
+			st,
+		)
+	}
 
 	panic("main exit")
 }
