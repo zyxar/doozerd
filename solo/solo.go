@@ -52,8 +52,9 @@ func Main(
 ) {
 	var (
 		canWrite = make(chan bool, 1)
+		ver, _   = st.Snap()
 		p        = &proposer{
-			seq:   0,
+			seq:   ver,
 			store: st,
 		}
 	)
