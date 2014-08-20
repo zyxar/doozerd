@@ -12,35 +12,54 @@ import (
 	"github.com/soundcloud/doozerd/web"
 )
 
+type proposal struct {
+	eventc chan store.Event
+	mut    string
+}
+
 type proposer struct {
-	store *store.Store
-	seq   int64
+	proposalc chan proposal
+	store     *store.Store
 }
 
 func (p *proposer) Propose(v []byte) store.Event {
-	var (
-		op = store.Op{
-			Seqn: 1 + <-p.store.Seqns,
-			Mut:  string(v),
-		}
+	eventc := make(chan store.Event)
 
-		ev store.Event
-	)
-
-	p.store.Ops <- op
-
-	for ev.Mut != string(v) {
-		p.seq += 1
-		w, err := p.store.Wait(store.Any, p.seq)
-		if err != nil {
-			panic(err) // can't happen
-		}
-		ev = <-w
+	p.proposalc <- proposal{
+		eventc: eventc,
+		mut:    string(v),
 	}
 
-	return ev
+	return <-eventc
 }
 
+func (p *proposer) process() {
+	for prop := range p.proposalc {
+		op := store.Op{
+			Seqn: 1 + <-p.store.Seqns,
+			Mut:  prop.mut,
+		}
+
+		p.store.Ops <- op
+
+		waitc, err := p.store.Wait(store.Any, op.Seqn)
+		if err != nil {
+			panic(err) // can't happen, but happened before.
+		}
+		ev := <-waitc
+
+		// This is a safety measure if the sequential nature of solo mode missed a
+		// corner-case.
+		if ev.Mut == prop.mut {
+			prop.eventc <- ev
+			continue
+		}
+
+		panic("not reachable")
+	}
+}
+
+// Main takes care of essentail setup of proposer, gc and server.
 func Main(
 	clusterName string,
 	name string,
@@ -52,10 +71,9 @@ func Main(
 ) {
 	var (
 		canWrite = make(chan bool, 1)
-		ver, _   = st.Snap()
 		p        = &proposer{
-			seq:   ver,
-			store: st,
+			proposalc: make(chan proposal),
+			store:     st,
 		}
 	)
 
@@ -76,6 +94,9 @@ func Main(
 		go web.Serve(webListener)
 	}
 
+	// sequential handling of mutations
+	go p.process()
+
 	go gc.Clean(st, history, time.Tick(1e9))
 
 	canWrite <- true
@@ -84,5 +105,8 @@ func Main(
 
 func set(st *store.Store, path, body string, rev int64) {
 	mut := store.MustEncodeSet(path, body, rev)
-	st.Ops <- store.Op{1 + <-st.Seqns, mut}
+	st.Ops <- store.Op{
+		Mut:  mut,
+		Seqn: 1 + <-st.Seqns,
+	}
 }
