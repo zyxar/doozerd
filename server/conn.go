@@ -1,13 +1,16 @@
 package server
 
 import (
-	"code.google.com/p/goprotobuf/proto"
 	"encoding/binary"
-	"github.com/soundcloud/doozerd/consensus"
-	"github.com/soundcloud/doozerd/store"
+	"fmt"
 	"io"
 	"log"
 	"sync"
+	"time"
+
+	"code.google.com/p/goprotobuf/proto"
+	"github.com/soundcloud/doozerd/consensus"
+	"github.com/soundcloud/doozerd/store"
 )
 
 type conn struct {
@@ -29,7 +32,12 @@ func (c *conn) serve() {
 	defer close(c.closed)
 
 	for {
-		var t txn
+		var (
+			start = time.Now()
+
+			t txn
+		)
+
 		t.c = c
 		err := c.read(&t.req)
 		if err != nil {
@@ -38,7 +46,17 @@ func (c *conn) serve() {
 			}
 			return
 		}
+
 		t.run()
+
+		// Log the transaction
+		fmt.Printf(
+			"%s %s %d %s\n",
+			request_Verb_name[int32(t.req.GetVerb())],
+			t.req.GetPath(),
+			time.Since(start),
+			c.addr,
+		)
 	}
 }
 
