@@ -1,6 +1,12 @@
 package peer
 
 import (
+	"io"
+	"log"
+	"net"
+	"os"
+	"time"
+
 	"github.com/soundcloud/doozer"
 	"github.com/soundcloud/doozerd/consensus"
 	"github.com/soundcloud/doozerd/gc"
@@ -8,11 +14,6 @@ import (
 	"github.com/soundcloud/doozerd/server"
 	"github.com/soundcloud/doozerd/store"
 	"github.com/soundcloud/doozerd/web"
-	"io"
-	"log"
-	"net"
-	"os"
-	"time"
 )
 
 const (
@@ -43,6 +44,7 @@ func (p *proposer) Propose(v []byte) (e store.Event) {
 	return
 }
 
+// Main has doc
 func Main(
 	clusterName, self, buri, rwsk, rosk string,
 	cl *doozer.Conn,
