@@ -3,7 +3,6 @@ package server
 import (
 	"log"
 	"net"
-	"runtime"
 	"syscall"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -37,22 +36,12 @@ var (
 			[]string{"type"}, nil,
 		),
 	})
-
-	numGoroutines = prometheus.NewGaugeFunc(
-		prometheus.GaugeOpts{
-			Namespace: "process",
-			Name:      "num_goroutines",
-			Help:      "Number of currently running Goroutines.",
-		},
-		func() float64 { return float64(runtime.NumGoroutine()) },
-	)
 )
 
 func init() {
 	prometheus.MustRegister(conEvents)
 	prometheus.MustRegister(conCount)
 	prometheus.MustRegister(expvarCollector)
-	prometheus.MustRegister(numGoroutines)
 }
 
 // ListenAndServe listens on l, accepts network connections, and
