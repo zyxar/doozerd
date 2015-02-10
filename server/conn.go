@@ -49,13 +49,24 @@ func (c *conn) serve() {
 
 		t.run()
 
+		path := t.req.GetPath()
+		if path == "" {
+			path = "<empty>"
+		}
+
+		statusString := "success"
+		if t.resp.ErrCode != nil {
+			statusString = response_Err_name[int32(*t.resp.ErrCode)]
+		}
+
 		// Log the transaction
 		fmt.Printf(
-			"%s %s %d %s\n",
-			request_Verb_name[int32(t.req.GetVerb())],
-			t.req.GetPath(),
-			time.Since(start),
+			"%s %s %s %d %s\n",
 			c.addr,
+			request_Verb_name[int32(t.req.GetVerb())],
+			path,
+			time.Since(start),
+			statusString,
 		)
 	}
 }
