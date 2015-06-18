@@ -2,11 +2,12 @@ package consensus
 
 import (
 	"container/heap"
-	"github.com/soundcloud/doozerd/store"
 	"log"
 	"math/rand"
 	"net"
 	"time"
+
+	"github.com/soundcloud/doozerd/store"
 )
 
 const initialWaitBound = 1e6 // ns == 1ms
@@ -33,7 +34,7 @@ func (r *run) quorum() int {
 }
 
 func (r *run) update(p *packet, from int, ticks heap.Interface) {
-	if p.msg.Cmd != nil && *p.msg.Cmd == msg_TICK {
+	if p.Msg.Cmd != nil && *p.Msg.Cmd == Msg_TICK {
 		log.Printf("tick wasteful=%v", r.l.done)
 	}
 
@@ -47,7 +48,7 @@ func (r *run) update(p *packet, from int, ticks heap.Interface) {
 		schedTrigger(ticks, r.seqn, time.Now().UnixNano(), t)
 	}
 
-	m = r.a.update(&p.msg)
+	m = r.a.update(&p.Msg)
 	r.broadcast(m)
 
 	m, v, ok := r.l.update(p, from)
@@ -58,7 +59,7 @@ func (r *run) update(p *packet, from int, ticks heap.Interface) {
 	}
 }
 
-func (r *run) broadcast(m *msg) {
+func (r *run) broadcast(m *Msg) {
 	if m != nil {
 		m.Seqn = &r.seqn
 		for _, addr := range r.addr {

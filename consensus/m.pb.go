@@ -2,31 +2,38 @@
 // source: m.proto
 // DO NOT EDIT!
 
+/*
+Package consensus is a generated protocol buffer package.
+
+It is generated from these files:
+	m.proto
+
+It has these top-level messages:
+	Msg
+*/
 package consensus
 
-import proto "code.google.com/p/goprotobuf/proto"
-import json "encoding/json"
+import proto "github.com/golang/protobuf/proto"
 import math "math"
 
-// Reference proto, json, and math imports to suppress error if they are not otherwise used.
+// Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
-var _ = &json.SyntaxError{}
 var _ = math.Inf
 
-type msg_Cmd int32
+type Msg_Cmd int32
 
 const (
-	msg_NOP      msg_Cmd = 0
-	msg_INVITE   msg_Cmd = 1
-	msg_RSVP     msg_Cmd = 2
-	msg_NOMINATE msg_Cmd = 3
-	msg_VOTE     msg_Cmd = 4
-	msg_TICK     msg_Cmd = 5
-	msg_PROPOSE  msg_Cmd = 6
-	msg_LEARN    msg_Cmd = 7
+	Msg_NOP      Msg_Cmd = 0
+	Msg_INVITE   Msg_Cmd = 1
+	Msg_RSVP     Msg_Cmd = 2
+	Msg_NOMINATE Msg_Cmd = 3
+	Msg_VOTE     Msg_Cmd = 4
+	Msg_TICK     Msg_Cmd = 5
+	Msg_PROPOSE  Msg_Cmd = 6
+	Msg_LEARN    Msg_Cmd = 7
 )
 
-var msg_Cmd_name = map[int32]string{
+var Msg_Cmd_name = map[int32]string{
 	0: "NOP",
 	1: "INVITE",
 	2: "RSVP",
@@ -36,7 +43,7 @@ var msg_Cmd_name = map[int32]string{
 	6: "PROPOSE",
 	7: "LEARN",
 }
-var msg_Cmd_value = map[string]int32{
+var Msg_Cmd_value = map[string]int32{
 	"NOP":      0,
 	"INVITE":   1,
 	"RSVP":     2,
@@ -47,28 +54,25 @@ var msg_Cmd_value = map[string]int32{
 	"LEARN":    7,
 }
 
-func (x msg_Cmd) Enum() *msg_Cmd {
-	p := new(msg_Cmd)
+func (x Msg_Cmd) Enum() *Msg_Cmd {
+	p := new(Msg_Cmd)
 	*p = x
 	return p
 }
-func (x msg_Cmd) String() string {
-	return proto.EnumName(msg_Cmd_name, int32(x))
+func (x Msg_Cmd) String() string {
+	return proto.EnumName(Msg_Cmd_name, int32(x))
 }
-func (x msg_Cmd) MarshalJSON() ([]byte, error) {
-	return json.Marshal(x.String())
-}
-func (x *msg_Cmd) UnmarshalJSON(data []byte) error {
-	value, err := proto.UnmarshalJSONEnum(msg_Cmd_value, data, "msg_Cmd")
+func (x *Msg_Cmd) UnmarshalJSON(data []byte) error {
+	value, err := proto.UnmarshalJSONEnum(Msg_Cmd_value, data, "Msg_Cmd")
 	if err != nil {
 		return err
 	}
-	*x = msg_Cmd(value)
+	*x = Msg_Cmd(value)
 	return nil
 }
 
-type msg struct {
-	Cmd              *msg_Cmd `protobuf:"varint,1,opt,name=cmd,enum=consensus.msg_Cmd" json:"cmd,omitempty"`
+type Msg struct {
+	Cmd              *Msg_Cmd `protobuf:"varint,1,opt,name=cmd,enum=consensus.Msg_Cmd" json:"cmd,omitempty"`
 	Seqn             *int64   `protobuf:"varint,2,opt,name=seqn" json:"seqn,omitempty"`
 	Crnd             *int64   `protobuf:"varint,3,opt,name=crnd" json:"crnd,omitempty"`
 	Vrnd             *int64   `protobuf:"varint,4,opt,name=vrnd" json:"vrnd,omitempty"`
@@ -76,45 +80,45 @@ type msg struct {
 	XXX_unrecognized []byte   `json:"-"`
 }
 
-func (this *msg) Reset()         { *this = msg{} }
-func (this *msg) String() string { return proto.CompactTextString(this) }
-func (*msg) ProtoMessage()       {}
+func (m *Msg) Reset()         { *m = Msg{} }
+func (m *Msg) String() string { return proto.CompactTextString(m) }
+func (*Msg) ProtoMessage()    {}
 
-func (this *msg) GetCmd() msg_Cmd {
-	if this != nil && this.Cmd != nil {
-		return *this.Cmd
+func (m *Msg) GetCmd() Msg_Cmd {
+	if m != nil && m.Cmd != nil {
+		return *m.Cmd
+	}
+	return Msg_NOP
+}
+
+func (m *Msg) GetSeqn() int64 {
+	if m != nil && m.Seqn != nil {
+		return *m.Seqn
 	}
 	return 0
 }
 
-func (this *msg) GetSeqn() int64 {
-	if this != nil && this.Seqn != nil {
-		return *this.Seqn
+func (m *Msg) GetCrnd() int64 {
+	if m != nil && m.Crnd != nil {
+		return *m.Crnd
 	}
 	return 0
 }
 
-func (this *msg) GetCrnd() int64 {
-	if this != nil && this.Crnd != nil {
-		return *this.Crnd
+func (m *Msg) GetVrnd() int64 {
+	if m != nil && m.Vrnd != nil {
+		return *m.Vrnd
 	}
 	return 0
 }
 
-func (this *msg) GetVrnd() int64 {
-	if this != nil && this.Vrnd != nil {
-		return *this.Vrnd
-	}
-	return 0
-}
-
-func (this *msg) GetValue() []byte {
-	if this != nil {
-		return this.Value
+func (m *Msg) GetValue() []byte {
+	if m != nil {
+		return m.Value
 	}
 	return nil
 }
 
 func init() {
-	proto.RegisterEnum("consensus.msg_Cmd", msg_Cmd_name, msg_Cmd_value)
+	proto.RegisterEnum("consensus.Msg_Cmd", Msg_Cmd_name, Msg_Cmd_value)
 }

@@ -1,13 +1,14 @@
 package consensus
 
 import (
+	"testing"
+
 	"github.com/bmizerany/assert"
 	_ "github.com/soundcloud/doozerd/quiet"
-	"testing"
 )
 
 func TestIgnoreOldMessages(t *testing.T) {
-	tests := [][]*msg{
+	tests := [][]*Msg{
 		{newInviteSeqn1(11), newNominateSeqn1(1, "v")},
 		{newNominateSeqn1(11, "v"), newInviteSeqn1(1)},
 		{newInviteSeqn1(11), newInviteSeqn1(1)},
@@ -20,7 +21,7 @@ func TestIgnoreOldMessages(t *testing.T) {
 		ac.update(test[0])
 
 		got := ac.update(test[1])
-		assert.Equal(t, (*msg)(nil), got)
+		assert.Equal(t, (*Msg)(nil), got)
 	}
 }
 
@@ -31,7 +32,7 @@ func TestAcceptsInvite(t *testing.T) {
 }
 
 func TestItVotes(t *testing.T) {
-	totest := [][]*msg{
+	totest := [][]*Msg{
 		{newNominateSeqn1(1, "foo"), newVote(1, "foo")},
 		{newNominateSeqn1(1, "bar"), newVote(1, "bar")},
 	}
@@ -77,15 +78,15 @@ func TestVotesOnlyOncePerRound(t *testing.T) {
 	assert.Equal(t, newVote(1, "v"), got)
 
 	got = ac.update(newNominateSeqn1(1, "v"))
-	assert.Equal(t, (*msg)(nil), got)
+	assert.Equal(t, (*Msg)(nil), got)
 }
 
 func TestAcceptorIgnoresBadMessages(t *testing.T) {
 	ac := acceptor{}
 
-	got := ac.update(&msg{Cmd: invite}) // missing Crnd
-	assert.Equal(t, (*msg)(nil), got)
+	got := ac.update(&Msg{Cmd: invite}) // missing Crnd
+	assert.Equal(t, (*Msg)(nil), got)
 
-	got = ac.update(&msg{Cmd: nominate}) // missing Crnd
-	assert.Equal(t, (*msg)(nil), got)
+	got = ac.update(&Msg{Cmd: nominate}) // missing Crnd
+	assert.Equal(t, (*Msg)(nil), got)
 }

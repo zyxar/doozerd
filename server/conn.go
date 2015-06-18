@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"code.google.com/p/goprotobuf/proto"
+	"github.com/golang/protobuf/proto"
 	"github.com/soundcloud/doozerd/consensus"
 	"github.com/soundcloud/doozerd/store"
 )
@@ -56,14 +56,14 @@ func (c *conn) serve() {
 
 		statusString := "success"
 		if t.resp.ErrCode != nil {
-			statusString = response_Err_name[int32(*t.resp.ErrCode)]
+			statusString = Response_Err_name[int32(*t.resp.ErrCode)]
 		}
 
 		// Log the transaction
 		fmt.Printf(
 			"%s %s %s %d %s\n",
 			c.addr,
-			request_Verb_name[int32(t.req.GetVerb())],
+			Request_Verb_name[int32(t.req.GetVerb())],
 			path,
 			time.Since(start),
 			statusString,
@@ -71,7 +71,7 @@ func (c *conn) serve() {
 	}
 }
 
-func (c *conn) read(r *request) error {
+func (c *conn) read(r *Request) error {
 	var size int32
 	err := binary.Read(c.c, binary.BigEndian, &size)
 	if err != nil {
@@ -87,7 +87,7 @@ func (c *conn) read(r *request) error {
 	return proto.Unmarshal(buf, r)
 }
 
-func (c *conn) write(r *response) error {
+func (c *conn) write(r *Response) error {
 	buf, err := proto.Marshal(r)
 	if err != nil {
 		return err

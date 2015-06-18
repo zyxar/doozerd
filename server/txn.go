@@ -8,31 +8,30 @@ import (
 	"syscall"
 	"time"
 
-	"code.google.com/p/goprotobuf/proto"
+	"github.com/golang/protobuf/proto"
 	"github.com/prometheus/client_golang/prometheus"
-
 	"github.com/soundcloud/doozerd/consensus"
 	"github.com/soundcloud/doozerd/store"
 )
 
 type txn struct {
 	c    *conn
-	req  request
-	resp response
+	req  Request
+	resp Response
 }
 
 var ops = map[int32]func(*txn){
-	int32(request_DEL):    (*txn).del,
-	int32(request_GET):    (*txn).get,
-	int32(request_GETDIR): (*txn).getdir,
-	int32(request_NOP):    (*txn).nop,
-	int32(request_REV):    (*txn).rev,
-	int32(request_SET):    (*txn).set,
-	int32(request_STAT):   (*txn).stat,
-	int32(request_SELF):   (*txn).self,
-	int32(request_WAIT):   (*txn).wait,
-	int32(request_WALK):   (*txn).walk,
-	int32(request_ACCESS): (*txn).access,
+	int32(Request_DEL):    (*txn).del,
+	int32(Request_GET):    (*txn).get,
+	int32(Request_GETDIR): (*txn).getdir,
+	int32(Request_NOP):    (*txn).nop,
+	int32(Request_REV):    (*txn).rev,
+	int32(Request_SET):    (*txn).set,
+	int32(Request_STAT):   (*txn).stat,
+	int32(Request_SELF):   (*txn).self,
+	int32(Request_WAIT):   (*txn).wait,
+	int32(Request_WALK):   (*txn).walk,
+	int32(Request_ACCESS): (*txn).access,
 }
 
 // response flags
@@ -49,7 +48,7 @@ func (t *txn) run() {
 	if f, ok := ops[verb]; ok {
 		f(t)
 	} else {
-		t.respondErrCode(response_UNKNOWN_VERB)
+		t.respondErrCode(Response_UNKNOWN_VERB)
 	}
 }
 
@@ -63,7 +62,7 @@ func (t *txn) get() {
 	}
 
 	if t.req.Path == nil {
-		t.respondErrCode(response_MISSING_ARG)
+		t.respondErrCode(Response_MISSING_ARG)
 		trace("emissingarg")
 		return
 	}
@@ -78,7 +77,7 @@ func (t *txn) get() {
 
 		v, rev := g.Get(*t.req.Path)
 		if rev == store.Dir {
-			t.respondErrCode(response_ISDIR)
+			t.respondErrCode(Response_ISDIR)
 			trace("eisdir")
 			return
 		}
@@ -102,13 +101,13 @@ func (t *txn) set() {
 	}
 
 	if !t.c.canWrite {
-		t.respondErrCode(response_READONLY)
+		t.respondErrCode(Response_READONLY)
 		trace("ereadonly")
 		return
 	}
 
 	if t.req.Path == nil || t.req.Rev == nil {
-		t.respondErrCode(response_MISSING_ARG)
+		t.respondErrCode(Response_MISSING_ARG)
 		trace("emissingarg")
 		return
 	}
@@ -136,13 +135,13 @@ func (t *txn) del() {
 	}
 
 	if !t.c.canWrite {
-		t.respondErrCode(response_READONLY)
+		t.respondErrCode(Response_READONLY)
 		trace("ereadonly")
 		return
 	}
 
 	if t.req.Path == nil || t.req.Rev == nil {
-		t.respondErrCode(response_MISSING_ARG)
+		t.respondErrCode(Response_MISSING_ARG)
 		trace("emissingarg")
 		return
 	}
@@ -169,7 +168,7 @@ func (t *txn) nop() {
 	}
 
 	if !t.c.canWrite {
-		t.respondErrCode(response_READONLY)
+		t.respondErrCode(Response_READONLY)
 		trace("ereadonly")
 		return
 	}
@@ -232,7 +231,7 @@ func (t *txn) getdir() {
 	}
 
 	if t.req.Path == nil || t.req.Offset == nil {
-		t.respondErrCode(response_MISSING_ARG)
+		t.respondErrCode(Response_MISSING_ARG)
 		trace("emissingarg")
 		return
 	}
@@ -247,12 +246,12 @@ func (t *txn) getdir() {
 
 		ents, rev := g.Get(*t.req.Path)
 		if rev == store.Missing {
-			t.respondErrCode(response_NOENT)
+			t.respondErrCode(Response_NOENT)
 			trace("enoent")
 			return
 		}
 		if rev != store.Dir {
-			t.respondErrCode(response_NOTDIR)
+			t.respondErrCode(Response_NOTDIR)
 			trace("enotdir")
 			return
 		}
@@ -260,7 +259,7 @@ func (t *txn) getdir() {
 		sort.Strings(ents)
 		offset := int(*t.req.Offset)
 		if offset < 0 || offset >= len(ents) {
-			t.respondErrCode(response_RANGE)
+			t.respondErrCode(Response_RANGE)
 			trace("erange")
 			return
 		}
@@ -281,7 +280,7 @@ func (t *txn) wait() {
 	}
 
 	if t.req.Path == nil || t.req.Rev == nil {
-		t.respondErrCode(response_MISSING_ARG)
+		t.respondErrCode(Response_MISSING_ARG)
 		trace("emissingarg")
 		return
 	}
@@ -336,7 +335,7 @@ func (t *txn) walk() {
 	}
 
 	if t.req.Path == nil || t.req.Offset == nil {
-		t.respondErrCode(response_MISSING_ARG)
+		t.respondErrCode(Response_MISSING_ARG)
 		trace("emissingarg")
 		return
 	}
@@ -350,7 +349,7 @@ func (t *txn) walk() {
 
 	offset := *t.req.Offset
 	if offset < 0 {
-		t.respondErrCode(response_RANGE)
+		t.respondErrCode(Response_RANGE)
 		trace("erange")
 		return
 	}
@@ -377,7 +376,7 @@ func (t *txn) walk() {
 			return false
 		}
 		if !store.Walk(g, glob, f) {
-			t.respondErrCode(response_RANGE)
+			t.respondErrCode(Response_RANGE)
 			trace("erange")
 		}
 	}()
@@ -398,22 +397,22 @@ func (t *txn) access() {
 func (t *txn) respondOsError(err error) {
 	switch err {
 	case store.ErrBadPath:
-		t.respondErrCode(response_BAD_PATH)
+		t.respondErrCode(Response_BAD_PATH)
 	case store.ErrRevMismatch:
-		t.respondErrCode(response_REV_MISMATCH)
+		t.respondErrCode(Response_REV_MISMATCH)
 	case store.ErrTooLate:
-		t.respondErrCode(response_TOO_LATE)
+		t.respondErrCode(Response_TOO_LATE)
 	case syscall.EISDIR:
-		t.respondErrCode(response_ISDIR)
+		t.respondErrCode(Response_ISDIR)
 	case syscall.ENOTDIR:
-		t.respondErrCode(response_NOTDIR)
+		t.respondErrCode(Response_NOTDIR)
 	default:
 		t.resp.ErrDetail = proto.String(err.Error())
-		t.respondErrCode(response_OTHER)
+		t.respondErrCode(Response_OTHER)
 	}
 }
 
-func (t *txn) respondErrCode(e response_Err) {
+func (t *txn) respondErrCode(e Response_Err) {
 	t.resp.ErrCode = &e
 	t.respond()
 }

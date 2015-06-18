@@ -1,20 +1,20 @@
 package consensus
 
 import (
-	"code.google.com/p/goprotobuf/proto"
 	"container/heap"
-	"github.com/bmizerany/assert"
-	"github.com/soundcloud/doozerd/store"
 	"net"
 	"sort"
 	"testing"
 	"time"
+
+	"github.com/bmizerany/assert"
+	"github.com/golang/protobuf/proto"
+	"github.com/soundcloud/doozerd/store"
 )
 
 // The first element in a protobuf stream is always a varint.
 // The high bit of a varint byte indicates continuation;
 // This is a continuation bit without a subsequent byte.
-// http://code.google.com/apis/protocolbuffers/docs/encoding.html#varints.
 var invalidProtobuf = []byte{0x80}
 
 func mustMarshal(p proto.Message) []byte {
@@ -44,7 +44,7 @@ func TestManagerPumpDropsOldPackets(t *testing.T) {
 	m.run = make(map[int64]*run)
 	m.event(<-mustWait(st, 2))
 	m.pump()
-	recvPacket(&m.packet, Packet{x, msg{Seqn: proto.Int64(1)}})
+	recvPacket(&m.packet, Packet{x, Msg{Seqn: proto.Int64(1)}})
 	m.pump()
 	assert.Equal(t, 0, m.Stats.WaitPackets)
 }
@@ -53,21 +53,21 @@ func TestRecvPacket(t *testing.T) {
 	q := new(packets)
 	x, _ := net.ResolveUDPAddr("udp", "1.2.3.4:5")
 
-	p := recvPacket(q, Packet{x, msg{
+	p := recvPacket(q, Packet{x, Msg{
 		Seqn: proto.Int64(1),
 		Cmd:  invite,
 	}})
-	assert.Equal(t, &packet{x, msg{Seqn: proto.Int64(1), Cmd: invite}}, p)
-	p = recvPacket(q, Packet{x, msg{
+	assert.Equal(t, &packet{x, Msg{Seqn: proto.Int64(1), Cmd: invite}}, p)
+	p = recvPacket(q, Packet{x, Msg{
 		Seqn: proto.Int64(2),
 		Cmd:  invite,
 	}})
-	assert.Equal(t, &packet{x, msg{Seqn: proto.Int64(2), Cmd: invite}}, p)
-	p = recvPacket(q, Packet{x, msg{
+	assert.Equal(t, &packet{x, Msg{Seqn: proto.Int64(2), Cmd: invite}}, p)
+	p = recvPacket(q, Packet{x, Msg{
 		Seqn: proto.Int64(3),
 		Cmd:  invite,
 	}})
-	assert.Equal(t, &packet{x, msg{Seqn: proto.Int64(3), Cmd: invite}}, p)
+	assert.Equal(t, &packet{x, Msg{Seqn: proto.Int64(3), Cmd: invite}}, p)
 	assert.Equal(t, 3, q.Len())
 }
 
@@ -75,7 +75,7 @@ func TestRecvEmptyPacket(t *testing.T) {
 	q := new(packets)
 	x, _ := net.ResolveUDPAddr("udp", "1.2.3.4:5")
 
-	p := recvPacket(q, Packet{x, msg{}})
+	p := recvPacket(q, Packet{x, Msg{}})
 	assert.Equal(t, (*packet)(nil), p)
 	assert.Equal(t, 0, q.Len())
 }
@@ -83,7 +83,7 @@ func TestRecvEmptyPacket(t *testing.T) {
 func TestRecvInvalidPacket(t *testing.T) {
 	q := new(packets)
 	x, _ := net.ResolveUDPAddr("udp", "1.2.3.4:5")
-	p := recvPacket(q, Packet{x, msg{}})
+	p := recvPacket(q, Packet{x, Msg{}})
 	assert.Equal(t, (*packet)(nil), p)
 	assert.Equal(t, 0, q.Len())
 }
@@ -122,7 +122,7 @@ func TestManagerPacketProcessing(t *testing.T) {
 	addr, _ := net.ResolveUDPAddr("udp", "127.0.0.1:9999")
 	recvPacket(&m.packet, Packet{
 		Addr: addr,
-		msg:  msg{Seqn: proto.Int64(2), Cmd: learn, Value: []byte("foo")},
+		Msg:  Msg{Seqn: proto.Int64(2), Cmd: learn, Value: []byte("foo")},
 	})
 	m.pump()
 	assert.Equal(t, 0, m.packet.Len())
@@ -142,7 +142,7 @@ func TestManagerTickQueue(t *testing.T) {
 	m.event(<-mustWait(st, 2))
 
 	// get it to tick for seqn 3
-	recvPacket(&m.packet, Packet{msg: msg{Seqn: proto.Int64(3), Cmd: propose}})
+	recvPacket(&m.packet, Packet{Msg: Msg{Seqn: proto.Int64(3), Cmd: propose}})
 	m.pump()
 	assert.Equal(t, 1, m.tick.Len())
 
@@ -214,16 +214,16 @@ func TestApplyTriggers(t *testing.T) {
 	heap.Push(tgrs, trigger{t: 8, n: 8})
 	heap.Push(tgrs, trigger{t: 9, n: 9})
 
-	n := applyTriggers(pkts, tgrs, 5, &msg{Cmd: tick})
+	n := applyTriggers(pkts, tgrs, 5, &Msg{Cmd: tick})
 	assert.Equal(t, 5, n)
 
 	expTriggers := new(triggers)
 	expPackets := new(packets)
-	heap.Push(expPackets, &packet{msg: msg{Cmd: tick, Seqn: proto.Int64(1)}})
-	heap.Push(expPackets, &packet{msg: msg{Cmd: tick, Seqn: proto.Int64(2)}})
-	heap.Push(expPackets, &packet{msg: msg{Cmd: tick, Seqn: proto.Int64(3)}})
-	heap.Push(expPackets, &packet{msg: msg{Cmd: tick, Seqn: proto.Int64(4)}})
-	heap.Push(expPackets, &packet{msg: msg{Cmd: tick, Seqn: proto.Int64(5)}})
+	heap.Push(expPackets, &packet{Msg: Msg{Cmd: tick, Seqn: proto.Int64(1)}})
+	heap.Push(expPackets, &packet{Msg: Msg{Cmd: tick, Seqn: proto.Int64(2)}})
+	heap.Push(expPackets, &packet{Msg: Msg{Cmd: tick, Seqn: proto.Int64(3)}})
+	heap.Push(expPackets, &packet{Msg: Msg{Cmd: tick, Seqn: proto.Int64(4)}})
+	heap.Push(expPackets, &packet{Msg: Msg{Cmd: tick, Seqn: proto.Int64(5)}})
 	heap.Push(expTriggers, trigger{t: 6, n: 6})
 	heap.Push(expTriggers, trigger{t: 7, n: 7})
 	heap.Push(expTriggers, trigger{t: 8, n: 8})

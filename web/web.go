@@ -10,10 +10,9 @@ import (
 	"strings"
 	"text/template"
 
-	"code.google.com/p/go.net/websocket"
 	"github.com/prometheus/client_golang/prometheus"
-
 	"github.com/soundcloud/doozerd/store"
+	"golang.org/x/net/websocket"
 )
 
 var Store *store.Store
