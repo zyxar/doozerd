@@ -23,7 +23,7 @@ other users and developers.
 
 1. Download [doozerd](https://github.com/zyxar/doozerd/downloads)
 2. Unpack the archive and put `doozerd` in your `PATH`
-3. Repeat for [doozer](https://github.com/zyxar/doozer/downloads)
+3. Repeat for [doozer](https://github.com/soundcloud/doozer/downloads)
 4. Start a doozerd with a WebView listening on `:8080`
 
         $ doozerd -w ":8080"
