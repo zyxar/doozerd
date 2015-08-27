@@ -1,10 +1,10 @@
-package peer
+package solo
 
 import (
 	"github.com/bmizerany/assert"
 	"github.com/soundcloud/doozer"
 	"github.com/soundcloud/doozerd/store"
-	"os/exec"
+	"net"
 
 	"testing"
 )
@@ -12,13 +12,11 @@ import (
 func TestDoozerNop(t *testing.T) {
 	var (
 		l  = mustListen()
-		u  = mustListenUDP(l.Addr().String())
 		st = store.New(store.DefaultInitialRev)
 	)
 	defer l.Close()
-	defer u.Close()
 
-	go Main("a", "X", "", "", "", nil, u, l, nil, 1e9, 2e9, 3e9, 101, st)
+	go Main("a", "X", nil, l, nil, st, 1e6)
 
 	cl := dial(l.Addr().String())
 	err := cl.Nop()
@@ -28,14 +26,11 @@ func TestDoozerNop(t *testing.T) {
 func TestDoozerGet(t *testing.T) {
 	var (
 		l  = mustListen()
-		u  = mustListenUDP(l.Addr().String())
 		st = store.New(store.DefaultInitialRev)
 	)
-
 	defer l.Close()
-	defer u.Close()
 
-	go Main("a", "X", "", "", "", nil, u, l, nil, 1e9, 2e9, 3e9, 101, st)
+	go Main("a", "X", nil, l, nil, st, 1e6)
 
 	cl := dial(l.Addr().String())
 
@@ -46,28 +41,16 @@ func TestDoozerGet(t *testing.T) {
 	assert.Equal(t, nil, err)
 	assert.NotEqual(t, store.Dir, rev)
 	assert.Equal(t, []byte{'a'}, ents)
-
-	//cl.Set("/test/a", store.Missing, []byte{'1'})
-	//cl.Set("/test/b", store.Missing, []byte{'2'})
-	//cl.Set("/test/c", store.Missing, []byte{'3'})
-
-	//ents, rev, err = cl.Get("/test", 0)
-	//sort.SortStrings(ents)
-	//assert.Equal(t, store.Dir, rev)
-	//assert.Equal(t, nil, err)
-	//assert.Equal(t, []string{"a", "b", "c"}, ents)
 }
 
 func TestDoozerSet(t *testing.T) {
 	var (
 		l  = mustListen()
-		u  = mustListenUDP(l.Addr().String())
 		st = store.New(store.DefaultInitialRev)
 	)
 	defer l.Close()
-	defer u.Close()
 
-	go Main("a", "X", "", "", "", nil, u, l, nil, 1e9, 2e9, 3e9, 101, st)
+	go Main("a", "X", nil, l, nil, st, 1e6)
 
 	cl := dial(l.Addr().String())
 
@@ -83,13 +66,11 @@ func TestDoozerSet(t *testing.T) {
 func TestDoozerGetWithRev(t *testing.T) {
 	var (
 		l  = mustListen()
-		u  = mustListenUDP(l.Addr().String())
 		st = store.New(store.DefaultInitialRev)
 	)
 	defer l.Close()
-	defer u.Close()
 
-	go Main("a", "X", "", "", "", nil, u, l, nil, 1e9, 2e9, 3e9, 101, st)
+	go Main("a", "X", nil, l, nil, st, 1e6)
 
 	cl := dial(l.Addr().String())
 
@@ -118,13 +99,11 @@ func TestDoozerGetWithRev(t *testing.T) {
 func TestDoozerWaitSimple(t *testing.T) {
 	var (
 		l  = mustListen()
-		u  = mustListenUDP(l.Addr().String())
 		st = store.New(store.DefaultInitialRev)
 	)
 	defer l.Close()
-	defer u.Close()
 
-	go Main("a", "X", "", "", "", nil, u, l, nil, 1e9, 2e9, 3e9, 101, st)
+	go Main("a", "X", nil, l, nil, st, 1e6)
 
 	cl := dial(l.Addr().String())
 	var rev int64 = 1
@@ -155,13 +134,11 @@ func TestDoozerWaitSimple(t *testing.T) {
 func TestDoozerWaitWithRev(t *testing.T) {
 	var (
 		l  = mustListen()
-		u  = mustListenUDP(l.Addr().String())
 		st = store.New(store.DefaultInitialRev)
 	)
 	defer l.Close()
-	defer u.Close()
 
-	go Main("a", "X", "", "", "", nil, u, l, nil, 1e9, 2e9, 3e9, 101, st)
+	go Main("a", "X", nil, l, nil, st, 1e6)
 
 	cl := dial(l.Addr().String())
 
@@ -186,13 +163,11 @@ func TestDoozerWaitWithRev(t *testing.T) {
 func TestDoozerStat(t *testing.T) {
 	var (
 		l  = mustListen()
-		u  = mustListenUDP(l.Addr().String())
 		st = store.New(store.DefaultInitialRev)
 	)
 	defer l.Close()
-	defer u.Close()
 
-	go Main("a", "X", "", "", "", nil, u, l, nil, 1e9, 2e9, 3e9, 101, st)
+	go Main("a", "X", nil, l, nil, st, 1e6)
 
 	cl := dial(l.Addr().String())
 
@@ -213,13 +188,11 @@ func TestDoozerStat(t *testing.T) {
 func TestDoozerGetdirOnDir(t *testing.T) {
 	var (
 		l  = mustListen()
-		u  = mustListenUDP(l.Addr().String())
 		st = store.New(store.DefaultInitialRev)
 	)
 	defer l.Close()
-	defer u.Close()
 
-	go Main("a", "X", "", "", "", nil, u, l, nil, 1e9, 2e9, 3e9, 101, st)
+	go Main("a", "X", nil, l, nil, st, 1e6)
 
 	cl := dial(l.Addr().String())
 
@@ -240,13 +213,11 @@ func TestDoozerGetdirOnDir(t *testing.T) {
 func TestDoozerGetdirOnFile(t *testing.T) {
 	var (
 		l  = mustListen()
-		u  = mustListenUDP(l.Addr().String())
 		st = store.New(store.DefaultInitialRev)
 	)
 	defer l.Close()
-	defer u.Close()
 
-	go Main("a", "X", "", "", "", nil, u, l, nil, 1e9, 2e9, 3e9, 101, st)
+	go Main("a", "X", nil, l, nil, st, 1e6)
 
 	cl := dial(l.Addr().String())
 
@@ -265,13 +236,11 @@ func TestDoozerGetdirOnFile(t *testing.T) {
 func TestDoozerGetdirMissing(t *testing.T) {
 	var (
 		l  = mustListen()
-		u  = mustListenUDP(l.Addr().String())
 		st = store.New(store.DefaultInitialRev)
 	)
 	defer l.Close()
-	defer u.Close()
 
-	go Main("a", "X", "", "", "", nil, u, l, nil, 1e9, 2e9, 3e9, 101, st)
+	go Main("a", "X", nil, l, nil, st, 1e6)
 
 	cl := dial(l.Addr().String())
 
@@ -288,13 +257,11 @@ func TestDoozerGetdirMissing(t *testing.T) {
 func TestDoozerGetdirOffsetLimit(t *testing.T) {
 	var (
 		l  = mustListen()
-		u  = mustListenUDP(l.Addr().String())
 		st = store.New(store.DefaultInitialRev)
 	)
 	defer l.Close()
-	defer u.Close()
 
-	go Main("a", "X", "", "", "", nil, u, l, nil, 1e9, 2e9, 3e9, 101, st)
+	go Main("a", "X", nil, l, nil, st, 1e6)
 
 	cl := dial(l.Addr().String())
 	cl.Set("/test/a", store.Clobber, []byte("1"))
@@ -312,105 +279,18 @@ func TestDoozerGetdirOffsetLimit(t *testing.T) {
 	assert.Equal(t, []string{"b", "c"}, names)
 }
 
-// TODO(xla) Needs to be revised but liklely obsolete since the short-circuit
-// of consnesus in 8a296df.
-// func TestPeerShun(t *testing.T) {
-// 	l0 := mustListen()
-// 	defer l0.Close()
-// 	a0 := l0.Addr().String()
-// 	u0 := mustListenUDP(a0)
-// 	defer u0.Close()
-//
-// 	l1 := mustListen()
-// 	defer l1.Close()
-// 	u1 := mustListenUDP(l1.Addr().String())
-// 	defer u1.Close()
-// 	l2 := mustListen()
-// 	defer l2.Close()
-// 	u2 := mustListenUDP(l2.Addr().String())
-// 	defer u2.Close()
-//
-// 	go Main("a", "X", "", "", "", nil, u0, l0, nil, 1e8, 1e7, 1e9, 1e9, store.New(store.DefaultInitialRev))
-// 	go Main("a", "Y", "", "", "", dial(a0), u1, l1, nil, 1e8, 1e7, 1e9, 1e9, store.New(store.DefaultInitialRev))
-// 	go Main("a", "Z", "", "", "", dial(a0), u2, l2, nil, 1e8, 1e7, 1e9, 1e9, store.New(store.DefaultInitialRev))
-//
-// 	cl := dial(l0.Addr().String())
-// 	cl.Set("/ctl/cal/1", store.Missing, nil)
-// 	cl.Set("/ctl/cal/2", store.Missing, nil)
-//
-// 	waitFor(cl, "/ctl/node/X/writable")
-// 	waitFor(cl, "/ctl/node/Y/writable")
-// 	waitFor(cl, "/ctl/node/Z/writable")
-//
-// 	rev, err := cl.Set("/test", store.Clobber, nil)
-// 	if e, ok := err.(*doozer.Error); ok && e.Err == doozer.ErrReadonly {
-// 	} else if err != nil {
-// 		panic(err)
-// 	}
-//
-// 	u1.Close()
-// 	for {
-// 		ev, err := cl.Wait("/ctl/cal/*", rev)
-// 		if err != nil {
-// 			panic(err)
-// 		}
-// 		if ev.IsSet() && len(ev.Body) == 0 {
-// 			break
-// 		}
-// 		rev = ev.Rev + 1
-// 	}
-// }
-
-// TODO(xla) Needs to be revised but liklely obsolete since the short-circuit
-// of consnesus in 8a296df.
-// func TestPeerLateJoin(t *testing.T) {
-// 	l0 := mustListen()
-// 	defer l0.Close()
-// 	a0 := l0.Addr().String()
-// 	u0 := mustListenUDP(a0)
-// 	defer u0.Close()
-//
-// 	l1 := mustListen()
-// 	defer l1.Close()
-// 	u1 := mustListenUDP(l1.Addr().String())
-// 	defer u1.Close()
-//
-// 	go Main("a", "X", "", "", "", nil, u0, l0, nil, 1e8, 1e7, 1e9, 60, store.New(store.DefaultInitialRev))
-//
-// 	cl := dial(l0.Addr().String())
-// 	waitFor(cl, "/ctl/node/X/writable")
-//
-// 	// TODO: this is set slightly higher than the hardcoded interval
-// 	// at which a store is cleaned.  Refactor that to be configurable
-// 	// so we can drop this down to something reasonable
-// 	time.Sleep(1100 * time.Millisecond)
-//
-// 	go Main("a", "Y", "", "", "", dial(a0), u1, l1, nil, 1e8, 1e7, 1e9, 60, store.New(store.DefaultInitialRev))
-// 	rev, _ := cl.Set("/ctl/cal/1", store.Missing, nil)
-// 	for {
-// 		ev, err := cl.Wait("/ctl/node/Y/writable", rev)
-// 		if err != nil {
-// 			panic(err)
-// 		}
-// 		if ev.IsSet() && len(ev.Body) == 4 {
-// 			break
-// 		}
-// 		rev = ev.Rev + 1
-// 	}
-// }
-
-func assertDenied(t *testing.T, err error) {
-	assert.NotEqual(t, nil, err)
-	assert.Equal(t, doozer.ErrOther, err.(*doozer.Error).Err)
-	assert.Equal(t, "permission denied", err.(*doozer.Error).Detail)
-}
-
-func runDoozer(a ...string) *exec.Cmd {
-	path := "/home/kr/src/go/bin/doozerd"
-	args := append([]string{path}, a...)
-	c := exec.Command(path, args...)
-	if err := c.Run(); err != nil {
+func dial(addr string) *doozer.Conn {
+	c, err := doozer.Dial(addr)
+	if err != nil {
 		panic(err)
 	}
 	return c
+}
+
+func mustListen() net.Listener {
+	l, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		panic(err)
+	}
+	return l
 }

@@ -1,9 +1,7 @@
 package web
 
 import (
-	"code.google.com/p/go.net/websocket"
 	"encoding/json"
-	"github.com/ha/doozerd/store"
 	"io"
 	"log"
 	"net"
@@ -11,6 +9,10 @@ import (
 	"runtime"
 	"strings"
 	"text/template"
+
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/soundcloud/doozerd/store"
+	"golang.org/x/net/websocket"
 )
 
 var Store *store.Store
@@ -42,6 +44,7 @@ func Serve(listener net.Listener) {
 	http.Handle("/$main.js", stringHandler{"application/javascript", main_js})
 	http.Handle("/$main.css", stringHandler{"text/css", main_css})
 	http.HandleFunc("/$events/", evServer)
+	http.Handle("/metrics", prometheus.Handler())
 
 	http.Serve(listener, nil)
 }

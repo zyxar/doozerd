@@ -2,7 +2,7 @@
 
 ![logo](doc/doozer.png)
 
-[![Build Status](https://secure.travis-ci.org/ha/doozerd.png)](http://travis-ci.org/ha/doozerd)
+[![Build Status](https://secure.travis-ci.org/soundcloud/doozerd.png)](http://travis-ci.org/soundcloud/doozerd)
 
 ## What Is It?
 
@@ -21,9 +21,9 @@ other users and developers.
 
 ## Quick Start
 
-1. Download [doozerd](https://github.com/ha/doozerd/downloads)
+1. Download [doozerd](https://github.com/soundcloud/doozerd/downloads)
 2. Unpack the archive and put `doozerd` in your `PATH`
-3. Repeat for [doozer](https://github.com/ha/doozer/downloads)
+3. Repeat for [doozer](https://github.com/soundcloud/doozer/downloads)
 4. Start a doozerd with a WebView listening on `:8080`
 
         $ doozerd -w ":8080"

@@ -1,14 +1,15 @@
 package consensus
 
 import (
-	"code.google.com/p/goprotobuf/proto"
 	"fmt"
 	"net"
+
+	"github.com/golang/protobuf/proto"
 )
 
-func (x *msg_Cmd) Format(f fmt.State, c int) {
+func (x *Msg_Cmd) Format(f fmt.State, c int) {
 	if c == 'v' && f.Flag('#') && x != nil {
-		fmt.Fprintf(f, "msg_%s", msg_Cmd_name[int32(*x)])
+		fmt.Fprintf(f, "Msg_%s", Msg_Cmd_name[int32(*x)])
 		return
 	}
 
@@ -29,8 +30,8 @@ func (x *msg_Cmd) Format(f fmt.State, c int) {
 }
 
 // For testing convenience
-func newVote(i int64, vval string) *msg {
-	return &msg{Cmd: vote, Vrnd: &i, Value: []byte(vval)}
+func newVote(i int64, vval string) *Msg {
+	return &Msg{Cmd: vote, Vrnd: &i, Value: []byte(vval)}
 }
 
 // For testing convenience
@@ -41,20 +42,20 @@ func newVoteFrom(from int, i int64, vval string) (*packet, int) {
 }
 
 // For testing convenience
-func newNominate(crnd int64, v string) *msg {
-	return &msg{Cmd: nominate, Crnd: &crnd, Value: []byte(v)}
+func newNominate(crnd int64, v string) *Msg {
+	return &Msg{Cmd: nominate, Crnd: &crnd, Value: []byte(v)}
 }
 
 // For testing convenience
-func newNominateSeqn1(crnd int64, v string) *msg {
+func newNominateSeqn1(crnd int64, v string) *Msg {
 	m := newNominate(crnd, v)
 	m.Seqn = proto.Int64(1)
 	return m
 }
 
 // For testing convenience
-func newRsvp(i, vrnd int64, vval string) *msg {
-	return &msg{
+func newRsvp(i, vrnd int64, vval string) *Msg {
+	return &Msg{
 		Cmd:   rsvp,
 		Crnd:  &i,
 		Vrnd:  &vrnd,
@@ -70,23 +71,23 @@ func newRsvpFrom(from int, i, vrnd int64, vval string) (*packet, int) {
 }
 
 // For testing convenience
-func newInvite(crnd int64) *msg {
-	return &msg{Cmd: invite, Crnd: &crnd}
+func newInvite(crnd int64) *Msg {
+	return &Msg{Cmd: invite, Crnd: &crnd}
 }
 
 // For testing convenience
-func newInviteSeqn1(rnd int64) *msg {
+func newInviteSeqn1(rnd int64) *Msg {
 	m := newInvite(rnd)
 	m.Seqn = proto.Int64(1)
 	return m
 }
 
 // For testing convenience
-func newPropose(val string) *msg {
-	return &msg{Cmd: propose, Value: []byte(val)}
+func newPropose(val string) *Msg {
+	return &Msg{Cmd: propose, Value: []byte(val)}
 }
 
 // For testing convenience
-func newLearn(val string) *msg {
-	return &msg{Cmd: learn, Value: []byte(val)}
+func newLearn(val string) *Msg {
+	return &Msg{Cmd: learn, Value: []byte(val)}
 }

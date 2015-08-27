@@ -19,6 +19,9 @@ const (
 // TODO revisit this when package regexp is more complete (e.g. do Unicode)
 const charPat = `[a-zA-Z0-9.\-]`
 
+// Default rev to start a Store from.
+const DefaultInitialRev = 0
+
 var pathRe = mustBuildRe(charPat)
 
 var Any = MustCompileGlob("/**")
@@ -39,17 +42,18 @@ func mustBuildRe(p string) *regexp.Regexp {
 // errors that occur will be written to ErrorPath. Duplicate operations at a
 // given position are sliently ignored.
 type Store struct {
-	Ops     chan<- Op
-	Seqns   <-chan int64
-	Waiting <-chan int
-	watchCh chan *watch
-	watches []*watch
-	todo    []Op
-	state   *state
-	head    int64
-	log     map[int64]Event
-	cleanCh chan int64
-	flush   chan bool
+	Ops         chan<- Op
+	Seqns       <-chan int64
+	Waiting     <-chan int
+	watchCh     chan *watch
+	cancelWatch chan (<-chan Event)
+	watches     watches
+	todo        []Op
+	state       *state
+	head        int64
+	log         map[int64]Event
+	cleanCh     chan int64
+	flush       chan bool
 }
 
 // Represents an operation to apply to the store at position Seqn.
@@ -65,33 +69,28 @@ type state struct {
 	root node
 }
 
-type watch struct {
-	glob *Glob
-	rev  int64
-	c    chan<- Event
-}
-
 // Creates a new, empty data store. Mutations will be applied in order,
 // starting at number 1 (number 0 can be thought of as the creation of the
 // store).
-func New() *Store {
+func New(initialRev int64) *Store {
 	ops := make(chan Op)
 	seqns := make(chan int64)
-	watches := make(chan int)
+	waiting := make(chan int)
 
 	st := &Store{
-		Ops:     ops,
-		Seqns:   seqns,
-		Waiting: watches,
-		watchCh: make(chan *watch),
-		watches: []*watch{},
-		state:   &state{0, emptyDir},
-		log:     map[int64]Event{},
-		cleanCh: make(chan int64),
-		flush:   make(chan bool),
+		Ops:         ops,
+		Seqns:       seqns,
+		Waiting:     waiting,
+		watchCh:     make(chan *watch),
+		cancelWatch: make(chan (<-chan Event)),
+		watches:     watches{},
+		state:       &state{initialRev, emptyDir},
+		log:         map[int64]Event{},
+		cleanCh:     make(chan int64),
+		flush:       make(chan bool),
 	}
 
-	go st.process(ops, seqns, watches)
+	go st.process(ops, seqns, waiting)
 	return st
 }
 
@@ -186,22 +185,8 @@ func decode(mutation string) (path, v string, rev int64, keep bool, err error) {
 	panic("unreachable")
 }
 
-func (st *Store) notify(e Event, ws []*watch) (nws []*watch) {
-	for _, w := range ws {
-		if e.Seqn >= w.rev && w.glob.Match(e.Path) {
-			w.c <- e
-		} else {
-			nws = append(nws, w)
-		}
-	}
-
-	return nws
-}
-
 func (st *Store) closeWatches() {
-	for _, w := range st.watches {
-		close(w.c)
-	}
+	st.watches.close()
 }
 
 func (st *Store) process(ops <-chan Op, seqns chan<- int64, watches chan<- int) {
@@ -221,16 +206,21 @@ func (st *Store) process(ops <-chan Op, seqns chan<- int64, watches chan<- int) 
 			if a.Seqn > ver {
 				st.todo = append(st.todo, a)
 			}
+		case ch := <-st.cancelWatch:
+			st.watches.cancel(ch)
 		case w := <-st.watchCh:
-			n, ws := w.rev, []*watch{w}
-			for ; len(ws) > 0 && n < st.head; n++ {
-				ws = []*watch{}
-			}
-			for ; len(ws) > 0 && n <= ver; n++ {
-				ws = st.notify(st.log[n], ws)
+			if w.rev < st.head {
+				break
 			}
 
-			st.watches = append(st.watches, ws...)
+			var notified bool
+			for n := w.rev; !notified && n <= ver; n++ {
+				notified = w.notify(st.log[n])
+			}
+
+			if !notified {
+				st.watches = append(st.watches, w)
+			}
 		case seqn := <-st.cleanCh:
 			for ; st.head <= seqn; st.head++ {
 				delete(st.log, st.head)
@@ -261,18 +251,19 @@ func (st *Store) process(ops <-chan Op, seqns chan<- int64, watches chan<- int) 
 			}
 
 			values, ev = values.apply(t.Seqn, t.Mut)
+
 			st.state = &state{ev.Seqn, values}
 			ver = ev.Seqn
 			if !flush {
 				st.log[ev.Seqn] = ev
-				st.watches = st.notify(ev, st.watches)
+				st.watches.notify(ev)
 			}
 		}
 
 		// A flush just gets one final event.
 		if flush {
 			st.log[ev.Seqn] = ev
-			st.watches = st.notify(ev, st.watches)
+			st.watches.notify(ev)
 			st.head = ver + 1
 		}
 	}
@@ -347,6 +338,10 @@ func (st *Store) Wait(glob *Glob, rev int64) (<-chan Event, error) {
 		return nil, ErrTooLate
 	}
 	return ch, nil
+}
+
+func (st *Store) Cancel(watch <-chan Event) {
+	st.cancelWatch <- watch
 }
 
 func (st *Store) Clean(seqn int64) {

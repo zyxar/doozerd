@@ -5,12 +5,16 @@ import (
 	_ "expvar"
 	"flag"
 	"fmt"
-	"github.com/ha/doozer"
-	"github.com/ha/doozerd/peer"
 	"log"
 	"net"
+	_ "net/http/pprof"
 	"os"
 	"strconv"
+
+	"github.com/soundcloud/doozer"
+	"github.com/soundcloud/doozerd/peer"
+	"github.com/soundcloud/doozerd/solo"
+	"github.com/soundcloud/doozerd/store"
 )
 
 const defWebPort = 8000
@@ -39,6 +43,8 @@ var (
 	hi          = flag.Int64("hist", 2000, "length of history/revisions to keep")
 	certFile    = flag.String("tlscert", "", "TLS public certificate")
 	keyFile     = flag.String("tlskey", "", "TLS private key")
+	rev         = flag.Int64("rev", 0, "Sets the initial rev the store starts at")
+	soloMode    = flag.Bool("solo", false, "Runs in single node mode without consensus enabled")
 )
 
 var (
@@ -79,7 +85,7 @@ func main() {
 	}
 
 	log.SetPrefix("DOOZER ")
-	log.SetFlags(log.Ldate | log.Lmicroseconds)
+	log.SetFlags(log.Ldate | log.Lmicroseconds | log.Lshortfile)
 
 	tsock, err := net.Listen("tcp", *laddr)
 	if err != nil {
@@ -133,7 +139,37 @@ func main() {
 		cl = boot(*name, id, *laddr, *buri)
 	}
 
-	peer.Main(*name, id, *buri, rwsk, rosk, cl, usock, tsock, wsock, ns(*pi), ns(*fd), ns(*kt), *hi)
+	st := store.New(*rev)
+
+	if *soloMode {
+		solo.Main(
+			*name,
+			id,
+			cl,
+			tsock,
+			wsock,
+			st,
+			*hi,
+		)
+	} else {
+		peer.Main(
+			*name,
+			id,
+			*buri,
+			rwsk,
+			rosk,
+			cl,
+			usock,
+			tsock,
+			wsock,
+			ns(*pi),
+			ns(*fd),
+			ns(*kt),
+			*hi,
+			st,
+		)
+	}
+
 	panic("main exit")
 }
 

@@ -1,19 +1,19 @@
 package peer
 
 import (
-	"github.com/ha/doozer"
-	"github.com/ha/doozerd/consensus"
-	"github.com/ha/doozerd/gc"
-	"github.com/ha/doozerd/member"
-	"github.com/ha/doozerd/server"
-	"github.com/ha/doozerd/store"
-	"github.com/ha/doozerd/web"
 	"io"
 	"log"
 	"net"
 	"os"
-	"strings"
 	"time"
+
+	"github.com/soundcloud/doozer"
+	"github.com/soundcloud/doozerd/consensus"
+	"github.com/soundcloud/doozerd/gc"
+	"github.com/soundcloud/doozerd/member"
+	"github.com/soundcloud/doozerd/server"
+	"github.com/soundcloud/doozerd/store"
+	"github.com/soundcloud/doozerd/web"
 )
 
 const (
@@ -44,14 +44,20 @@ func (p *proposer) Propose(v []byte) (e store.Event) {
 	return
 }
 
-func Main(clusterName, self, buri, rwsk, rosk string, cl *doozer.Conn, udpConn *net.UDPConn, listener, webListener net.Listener, pulseInterval, fillDelay, kickTimeout int64, hi int64) {
+// Main has doc
+func Main(
+	clusterName, self, buri, rwsk, rosk string,
+	cl *doozer.Conn,
+	udpConn *net.UDPConn,
+	listener, webListener net.Listener,
+	pulseInterval, fillDelay, kickTimeout, hi int64,
+	st *store.Store,
+) {
 	listenAddr := listener.Addr().String()
 
 	canWrite := make(chan bool, 1)
-	in := make(chan consensus.Packet, 50)
-	out := make(chan consensus.Packet, 50)
+	in := make(chan consensus.Packet, 1024)
 
-	st := store.New()
 	pr := &proposer{
 		seqns: make(chan int64, alpha),
 		props: make(chan *consensus.Prop),
@@ -66,7 +72,7 @@ func Main(clusterName, self, buri, rwsk, rosk string, cl *doozer.Conn, udpConn *
 		m.DefRev = start
 		m.Alpha = alpha
 		m.In = in
-		m.Out = out
+		m.Out = in
 		m.Ops = st.Ops
 		m.PSeqn = pr.seqns
 		m.Props = pr.props
@@ -109,17 +115,29 @@ func Main(clusterName, self, buri, rwsk, rosk string, cl *doozer.Conn, udpConn *
 		}
 
 		stop := make(chan bool, 1)
+
 		go follow(st, cl, rev+1, stop)
 
-		errs := make(chan error)
-		go func() {
-			e, ok := <-errs
-			if ok {
-				panic(e)
+		err = doozer.Walk(cl, rev, "/", func(path string, f *doozer.FileInfo, e error) (err error) {
+			if f.IsDir {
+				return
 			}
-		}()
-		doozer.Walk(cl, rev, "/", cloner{st.Ops, cl, rev}, errs)
-		close(errs)
+			if e != nil {
+				return e
+			}
+			// store.Clobber is okay here because the event
+			// has already passed through another store
+			body, _, err := cl.Get(path, &f.Rev)
+			if err != nil {
+				return
+			}
+			mut := store.MustEncodeSet(path, string(body), store.Clobber)
+			st.Ops <- store.Op{f.Rev, mut}
+			return
+		})
+		if err != nil {
+			panic(err)
+		}
 		st.Flush()
 
 		ch, err := st.Wait(store.Any, rev+1)
@@ -159,51 +177,7 @@ func Main(clusterName, self, buri, rwsk, rosk string, cl *doozer.Conn, udpConn *
 		go web.Serve(webListener)
 	}
 
-	go func() {
-		for p := range out {
-			n, err := udpConn.WriteTo(p.Data, p.Addr)
-			if err != nil {
-				log.Println(err)
-				continue
-			}
-			if n != len(p.Data) {
-				log.Println("packet len too long:", len(p.Data))
-				continue
-			}
-		}
-	}()
-
-	selfAddr, ok := udpConn.LocalAddr().(*net.UDPAddr)
-	if !ok {
-		panic("no UDP addr")
-	}
-	lv := liveness{
-		timeout: kickTimeout,
-		ival:    kickTimeout / 2,
-		self:    selfAddr,
-		shun:    shun,
-	}
-	for {
-		t := time.Now().UnixNano()
-
-		buf := make([]byte, maxUDPLen)
-		n, addr, err := udpConn.ReadFromUDP(buf)
-		if err != nil && strings.Contains(err.Error(), "use of closed network connection") {
-			log.Printf("<<<< EXITING >>>>")
-			return
-		}
-		if err != nil {
-			log.Println(err)
-			continue
-		}
-
-		buf = buf[:n]
-
-		lv.mark(addr, t)
-		lv.check(t)
-
-		in <- consensus.Packet{addr, buf}
-	}
+	select {}
 }
 
 func activate(st *store.Store, self string, c *doozer.Conn) int64 {
@@ -286,27 +260,6 @@ func follow(st *store.Store, cl *doozer.Conn, rev int64, stop chan bool) {
 		default:
 		}
 	}
-}
-
-type cloner struct {
-	ch chan<- store.Op
-	cl *doozer.Conn
-	storeRev int64
-}
-
-func (c cloner) VisitDir(path string, f *doozer.FileInfo) bool {
-	return true
-}
-
-func (c cloner) VisitFile(path string, f *doozer.FileInfo) {
-	// store.Clobber is okay here because the event
-	// has already passed through another store
-	body, _, err := c.cl.Get(path, &c.storeRev)
-	if err != nil {
-		panic(err)
-	}
-	mut := store.MustEncodeSet(path, string(body), store.Clobber)
-	c.ch <- store.Op{f.Rev, mut}
 }
 
 func setReady(p consensus.Proposer, self string) {

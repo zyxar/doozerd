@@ -2,13 +2,13 @@ package gc
 
 import (
 	"github.com/bmizerany/assert"
-	"github.com/ha/doozerd/store"
+	"github.com/soundcloud/doozerd/store"
 	"testing"
 	"time"
 )
 
 func TestGcClean(t *testing.T) {
-	st := store.New()
+	st := store.New(store.DefaultInitialRev)
 	defer close(st.Ops)
 
 	ticker := make(chan time.Time)

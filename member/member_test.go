@@ -2,14 +2,14 @@ package member
 
 import (
 	"github.com/bmizerany/assert"
-	"github.com/ha/doozerd/store"
-	"github.com/ha/doozerd/test"
+	"github.com/soundcloud/doozerd/store"
+	"github.com/soundcloud/doozerd/test"
 	"sort"
 	"testing"
 )
 
 func TestMemberSimple(t *testing.T) {
-	st := store.New()
+	st := store.New(store.DefaultInitialRev)
 	defer close(st.Ops)
 	fp := &test.FakeProposer{Store: st}
 	c := make(chan string)

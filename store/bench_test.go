@@ -26,7 +26,7 @@ func BenchmarkHist1e6(b *testing.B) {
 
 func benchmarkNHist(n int, b *testing.B) {
 	b.StopTimer()
-	st := New()
+	st := New(DefaultInitialRev)
 	mut := [...]string{
 		MustEncodeSet("/test/path/one/foo", "12345", Clobber),
 		MustEncodeSet("/test/path/two/foo", "23456", Clobber),

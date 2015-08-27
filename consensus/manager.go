@@ -1,18 +1,28 @@
 package consensus
 
 import (
-	"code.google.com/p/goprotobuf/proto"
 	"container/heap"
-	"github.com/ha/doozerd/store"
 	"log"
 	"net"
 	"sort"
 	"time"
+
+	"github.com/prometheus/client_golang/prometheus"
+
+	"github.com/soundcloud/doozerd/store"
+)
+
+var (
+	inCount = prometheus.NewGauge(prometheus.GaugeOpts{
+		Namespace: "doozerd",
+		Name:      "in_chan_length",
+		Help:      "Number of currently queued items in in chan.",
+	})
 )
 
 type packet struct {
 	Addr *net.UDPAddr
-	msg
+	Msg
 }
 
 type packets []*packet
@@ -44,7 +54,7 @@ func (p *packets) Swap(i, j int) {
 
 type Packet struct {
 	Addr *net.UDPAddr
-	Data []byte
+	Msg  Msg
 }
 
 type trigger struct {
@@ -122,8 +132,8 @@ type Prop struct {
 	Mut  []byte
 }
 
-var tickTemplate = &msg{Cmd: tick}
-var fillTemplate = &msg{Cmd: propose, Value: []byte(store.Nop)}
+var tickTemplate = &Msg{Cmd: tick}
+var fillTemplate = &Msg{Cmd: propose, Value: []byte(store.Nop)}
 
 func (m *Manager) Run() {
 	m.run = make(map[int64]*run)
@@ -133,6 +143,8 @@ func (m *Manager) Run() {
 	}
 
 	for {
+		inCount.Set(float64(len(m.In)))
+
 		m.Stats.Runs = len(m.run)
 		m.Stats.WaitPackets = len(m.packet)
 		m.Stats.WaitTicks = len(m.tick)
@@ -156,7 +168,7 @@ func (m *Manager) Run() {
 			log.Println("avg fill delay:", avg(m.fill))
 		case p := <-m.In:
 			if p1 := recvPacket(&m.packet, p); p1 != nil {
-				m.Stats.TotalRecv[*p1.msg.Cmd]++
+				m.Stats.TotalRecv[*p1.Msg.Cmd]++
 			}
 		case pr := <-m.Props:
 			m.propose(&m.packet, pr, time.Now().UnixNano())
@@ -203,9 +215,9 @@ func (m *Manager) doTick(t int64) {
 func (m *Manager) propose(q heap.Interface, pr *Prop, t int64) {
 	log.Println("prop", pr)
 	p := new(packet)
-	p.msg.Seqn = &pr.Seqn
-	p.msg.Cmd = propose
-	p.msg.Value = pr.Mut
+	p.Msg.Seqn = &pr.Seqn
+	p.Msg.Cmd = propose
+	p.Msg.Value = pr.Mut
 	heap.Push(q, p)
 	for n := pr.Seqn - 1; ; n-- {
 		r := m.run[n]
@@ -218,39 +230,30 @@ func (m *Manager) propose(q heap.Interface, pr *Prop, t int64) {
 }
 
 func sendLearn(out chan<- Packet, p *packet, st *store.Store) {
-	if p.msg.Cmd != nil && *p.msg.Cmd == msg_INVITE {
+	if p.Msg.Cmd != nil && *p.Msg.Cmd == Msg_INVITE {
 		ch, err := st.Wait(store.Any, *p.Seqn)
 
 		if err == store.ErrTooLate {
 			log.Println(err)
 		} else {
 			e := <-ch
-			m := msg{
+			m := Msg{
 				Seqn:  &e.Seqn,
 				Cmd:   learn,
 				Value: []byte(e.Mut),
 			}
-			buf, _ := proto.Marshal(&m)
-			out <- Packet{p.Addr, buf}
+			out <- Packet{p.Addr, m}
 		}
 	}
 }
 
-func recvPacket(q heap.Interface, P Packet) (p *packet) {
-	p = new(packet)
-	p.Addr = P.Addr
-
-	err := proto.Unmarshal(P.Data, &p.msg)
-	if err != nil {
-		log.Println(err)
+func recvPacket(q heap.Interface, P Packet) *packet {
+	if P.Msg.Seqn == nil || P.Msg.Cmd == nil {
+		log.Printf("discarding %#v", P)
 		return nil
 	}
 
-	if p.msg.Seqn == nil || p.msg.Cmd == nil {
-		log.Printf("discarding %#v", p)
-		return nil
-	}
-
+	p := &packet{Addr: P.Addr, Msg: P.Msg}
 	heap.Push(q, p)
 	return p
 }
@@ -270,7 +273,7 @@ func schedTrigger(q heap.Interface, n, t, tfill int64) {
 	heap.Push(q, trigger{n: n, t: t + tfill})
 }
 
-func applyTriggers(ps *packets, ticks *triggers, now int64, tpl *msg) (n int) {
+func applyTriggers(ps *packets, ticks *triggers, now int64, tpl *Msg) (n int) {
 	for ticks.Len() > 0 {
 		tt := (*ticks)[0]
 		if tt.t > now {
@@ -280,9 +283,9 @@ func applyTriggers(ps *packets, ticks *triggers, now int64, tpl *msg) (n int) {
 		heap.Pop(ticks)
 
 		p := new(packet)
-		p.msg = *tpl
-		p.msg.Seqn = &tt.n
-		log.Println("applying", *p.Seqn, msg_Cmd_name[int32(*p.Cmd)])
+		p.Msg = *tpl
+		p.Msg.Seqn = &tt.n
+		log.Println("applying", *p.Seqn, Msg_Cmd_name[int32(*p.Cmd)])
 		heap.Push(ps, p)
 		n++
 	}
@@ -374,4 +377,8 @@ func fmtRuns(rs map[int64]*run) (s string) {
 		}
 	}
 	return s
+}
+
+func init() {
+	prometheus.MustRegister(inCount)
 }

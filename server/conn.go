@@ -1,13 +1,16 @@
 package server
 
 import (
-	"code.google.com/p/goprotobuf/proto"
 	"encoding/binary"
-	"github.com/ha/doozerd/consensus"
-	"github.com/ha/doozerd/store"
+	"fmt"
 	"io"
 	"log"
 	"sync"
+	"time"
+
+	"github.com/golang/protobuf/proto"
+	"github.com/soundcloud/doozerd/consensus"
+	"github.com/soundcloud/doozerd/store"
 )
 
 type conn struct {
@@ -22,11 +25,19 @@ type conn struct {
 	waccess  bool
 	raccess  bool
 	self     string
+	closed   chan struct{}
 }
 
 func (c *conn) serve() {
+	defer close(c.closed)
+
 	for {
-		var t txn
+		var (
+			start = time.Now()
+
+			t txn
+		)
+
 		t.c = c
 		err := c.read(&t.req)
 		if err != nil {
@@ -35,11 +46,32 @@ func (c *conn) serve() {
 			}
 			return
 		}
+
 		t.run()
+
+		path := t.req.GetPath()
+		if path == "" {
+			path = "<empty>"
+		}
+
+		statusString := "success"
+		if t.resp.ErrCode != nil {
+			statusString = Response_Err_name[int32(*t.resp.ErrCode)]
+		}
+
+		// Log the transaction
+		fmt.Printf(
+			"%s %s %s %d %s\n",
+			c.addr,
+			Request_Verb_name[int32(t.req.GetVerb())],
+			path,
+			time.Since(start),
+			statusString,
+		)
 	}
 }
 
-func (c *conn) read(r *request) error {
+func (c *conn) read(r *Request) error {
 	var size int32
 	err := binary.Read(c.c, binary.BigEndian, &size)
 	if err != nil {
@@ -55,7 +87,7 @@ func (c *conn) read(r *request) error {
 	return proto.Unmarshal(buf, r)
 }
 
-func (c *conn) write(r *response) error {
+func (c *conn) write(r *Response) error {
 	buf, err := proto.Marshal(r)
 	if err != nil {
 		return err

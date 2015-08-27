@@ -16,10 +16,10 @@ type coordinator struct {
 	sched bool
 }
 
-func (co *coordinator) update(p *packet, from int) (m *msg, wantTick bool) {
-	in := &p.msg
+func (co *coordinator) update(p *packet, from int) (m *Msg, wantTick bool) {
+	in := &p.Msg
 	switch *in.Cmd {
-	case msg_PROPOSE:
+	case Msg_PROPOSE:
 		if co.begun {
 			break
 		}
@@ -30,8 +30,8 @@ func (co *coordinator) update(p *packet, from int) (m *msg, wantTick bool) {
 		co.vv = ""
 		co.rsvp = make([]bool, co.size)
 		co.cval = ""
-		return &msg{Cmd: invite, Crnd: &co.crnd}, true
-	case msg_RSVP:
+		return &Msg{Cmd: invite, Crnd: &co.crnd}, true
+	case Msg_RSVP:
 		if !co.begun {
 			break
 		}
@@ -69,9 +69,9 @@ func (co *coordinator) update(p *packet, from int) (m *msg, wantTick bool) {
 			}
 			co.cval = v
 
-			return &msg{Cmd: nominate, Crnd: &co.crnd, Value: []byte(v)}, false
+			return &Msg{Cmd: nominate, Crnd: &co.crnd, Value: []byte(v)}, false
 		}
-	case msg_TICK:
+	case Msg_TICK:
 		co.crnd += int64(co.size)
 		co.vr = 0
 		co.vv = ""
@@ -79,7 +79,7 @@ func (co *coordinator) update(p *packet, from int) (m *msg, wantTick bool) {
 		co.nrsvp = 0
 		co.cval = ""
 		co.sched = false
-		return &msg{Cmd: invite, Crnd: &co.crnd}, true
+		return &Msg{Cmd: invite, Crnd: &co.crnd}, true
 	}
 
 	return
