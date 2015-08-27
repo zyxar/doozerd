@@ -3,8 +3,9 @@ package main
 import (
 	"crypto/rand"
 	"encoding/base32"
-	"github.com/soundcloud/doozer"
 	"time"
+
+	"github.com/soundcloud/doozer"
 )
 
 const attachTimeout = 1e9

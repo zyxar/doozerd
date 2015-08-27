@@ -8,8 +8,7 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
-
-	"github.com/soundcloud/doozerd/store"
+	"github.com/zyxar/doozerd/store"
 )
 
 var (

@@ -9,7 +9,7 @@ import (
 
 	"github.com/bmizerany/assert"
 	"github.com/golang/protobuf/proto"
-	"github.com/soundcloud/doozerd/store"
+	"github.com/zyxar/doozerd/store"
 )
 
 // The first element in a protobuf stream is always a varint.

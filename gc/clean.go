@@ -1,8 +1,9 @@
 package gc
 
 import (
-	"github.com/soundcloud/doozerd/store"
 	"time"
+
+	"github.com/zyxar/doozerd/store"
 )
 
 func Clean(st *store.Store, keep int64, ticker <-chan time.Time) {

@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/bmizerany/assert"
-	_ "github.com/soundcloud/doozerd/quiet"
+	_ "github.com/zyxar/doozerd/quiet"
 )
 
 func TestIgnoreOldMessages(t *testing.T) {

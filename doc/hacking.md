@@ -27,8 +27,8 @@ If you want to run doozer's tests, install
 ## Building Doozer
 
     (make sure you have set $GOPATH)
-    $ mkdir -p $GOPATH/src/github.com/soundcloud/
-    $ git clone https://github.com/soundcloud/doozerd.git
+    $ mkdir -p $GOPATH/src/github.com/zyxar/
+    $ git clone https://github.com/zyxar/doozerd.git
     $ cd doozerd
     $ ./all.sh
 

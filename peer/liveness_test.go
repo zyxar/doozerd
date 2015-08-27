@@ -1,9 +1,10 @@
 package peer
 
 import (
-	"github.com/bmizerany/assert"
 	"net"
 	"testing"
+
+	"github.com/bmizerany/assert"
 )
 
 func TestLivenessMark(t *testing.T) {

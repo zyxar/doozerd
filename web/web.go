@@ -11,7 +11,7 @@ import (
 	"text/template"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/soundcloud/doozerd/store"
+	"github.com/zyxar/doozerd/store"
 	"golang.org/x/net/websocket"
 )
 

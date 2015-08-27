@@ -1,9 +1,10 @@
 package peer
 
 import (
-	"github.com/soundcloud/doozer"
-	"github.com/soundcloud/doozerd/store"
 	"testing"
+
+	"github.com/soundcloud/doozer"
+	"github.com/zyxar/doozerd/store"
 )
 
 func Benchmark1DoozerClientSet(b *testing.B) {

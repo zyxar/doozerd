@@ -1,8 +1,9 @@
 package store
 
 import (
-	"github.com/bmizerany/assert"
 	"testing"
+
+	"github.com/bmizerany/assert"
 )
 
 func TestEventIsSet(t *testing.T) {

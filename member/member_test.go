@@ -1,11 +1,12 @@
 package member
 
 import (
-	"github.com/bmizerany/assert"
-	"github.com/soundcloud/doozerd/store"
-	"github.com/soundcloud/doozerd/test"
 	"sort"
 	"testing"
+
+	"github.com/bmizerany/assert"
+	"github.com/zyxar/doozerd/store"
+	"github.com/zyxar/doozerd/test"
 )
 
 func TestMemberSimple(t *testing.T) {

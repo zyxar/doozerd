@@ -1,12 +1,12 @@
 package solo
 
 import (
+	"net"
+	"testing"
+
 	"github.com/bmizerany/assert"
 	"github.com/soundcloud/doozer"
-	"github.com/soundcloud/doozerd/store"
-	"net"
-
-	"testing"
+	"github.com/zyxar/doozerd/store"
 )
 
 func TestDoozerNop(t *testing.T) {

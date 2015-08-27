@@ -6,9 +6,8 @@ import (
 	"syscall"
 
 	"github.com/prometheus/client_golang/prometheus"
-
-	"github.com/soundcloud/doozerd/consensus"
-	"github.com/soundcloud/doozerd/store"
+	"github.com/zyxar/doozerd/consensus"
+	"github.com/zyxar/doozerd/store"
 )
 
 const PrometheusNamespace = "doozerd"

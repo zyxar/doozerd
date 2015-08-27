@@ -12,9 +12,9 @@ import (
 	"strconv"
 
 	"github.com/soundcloud/doozer"
-	"github.com/soundcloud/doozerd/peer"
-	"github.com/soundcloud/doozerd/solo"
-	"github.com/soundcloud/doozerd/store"
+	"github.com/zyxar/doozerd/peer"
+	"github.com/zyxar/doozerd/solo"
+	"github.com/zyxar/doozerd/store"
 )
 
 const defWebPort = 8000

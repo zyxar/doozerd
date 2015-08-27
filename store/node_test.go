@@ -1,9 +1,10 @@
 package store
 
 import (
-	"github.com/bmizerany/assert"
 	"syscall"
 	"testing"
+
+	"github.com/bmizerany/assert"
 )
 
 func TestNodeApplySet(t *testing.T) {

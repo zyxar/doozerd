@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/soundcloud/doozerd/consensus"
-	"github.com/soundcloud/doozerd/store"
+	"github.com/zyxar/doozerd/consensus"
+	"github.com/zyxar/doozerd/store"
 )
 
 type conn struct {

@@ -1,9 +1,10 @@
 package store
 
 import (
-	"github.com/bmizerany/assert"
 	"sort"
 	"testing"
+
+	"github.com/bmizerany/assert"
 )
 
 func TestGetString(t *testing.T) {

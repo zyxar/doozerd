@@ -1,9 +1,10 @@
 package server
 
 import (
+	"testing"
+
 	"github.com/bmizerany/assert"
 	"github.com/kr/pretty"
-	"testing"
 )
 
 type grantTest struct {

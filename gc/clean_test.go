@@ -1,10 +1,11 @@
 package gc
 
 import (
-	"github.com/bmizerany/assert"
-	"github.com/soundcloud/doozerd/store"
 	"testing"
 	"time"
+
+	"github.com/bmizerany/assert"
+	"github.com/zyxar/doozerd/store"
 )
 
 func TestGcClean(t *testing.T) {

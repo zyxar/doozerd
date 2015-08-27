@@ -1,11 +1,12 @@
 package gc
 
 import (
-	"github.com/soundcloud/doozerd/consensus"
-	"github.com/soundcloud/doozerd/store"
 	"log"
 	"strconv"
 	"time"
+
+	"github.com/zyxar/doozerd/consensus"
+	"github.com/zyxar/doozerd/store"
 )
 
 func Pulse(node string, seqns <-chan int64, p consensus.Proposer, sleep int64) {

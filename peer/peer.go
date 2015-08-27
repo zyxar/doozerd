@@ -8,12 +8,12 @@ import (
 	"time"
 
 	"github.com/soundcloud/doozer"
-	"github.com/soundcloud/doozerd/consensus"
-	"github.com/soundcloud/doozerd/gc"
-	"github.com/soundcloud/doozerd/member"
-	"github.com/soundcloud/doozerd/server"
-	"github.com/soundcloud/doozerd/store"
-	"github.com/soundcloud/doozerd/web"
+	"github.com/zyxar/doozerd/consensus"
+	"github.com/zyxar/doozerd/gc"
+	"github.com/zyxar/doozerd/member"
+	"github.com/zyxar/doozerd/server"
+	"github.com/zyxar/doozerd/store"
+	"github.com/zyxar/doozerd/web"
 )
 
 const (

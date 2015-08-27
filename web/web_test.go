@@ -1,6 +1,8 @@
 package web
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestFoo(t *testing.T) {
 }

@@ -1,12 +1,12 @@
 package peer
 
 import (
+	"os/exec"
+	"testing"
+
 	"github.com/bmizerany/assert"
 	"github.com/soundcloud/doozer"
-	"github.com/soundcloud/doozerd/store"
-	"os/exec"
-
-	"testing"
+	"github.com/zyxar/doozerd/store"
 )
 
 func TestDoozerNop(t *testing.T) {

@@ -2,11 +2,12 @@ package consensus
 
 import (
 	"errors"
-	"github.com/bmizerany/assert"
-	"github.com/soundcloud/doozerd/store"
 	"net"
 	"testing"
 	"time"
+
+	"github.com/bmizerany/assert"
+	"github.com/zyxar/doozerd/store"
 )
 
 func TestConsensusOne(t *testing.T) {

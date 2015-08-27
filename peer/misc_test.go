@@ -1,9 +1,10 @@
 package peer
 
 import (
-	"github.com/soundcloud/doozer"
-	_ "github.com/soundcloud/doozerd/quiet"
 	"net"
+
+	"github.com/soundcloud/doozer"
+	_ "github.com/zyxar/doozerd/quiet"
 )
 
 func mustListen() net.Listener {

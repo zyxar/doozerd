@@ -1,9 +1,10 @@
 package member
 
 import (
-	"github.com/soundcloud/doozerd/consensus"
-	"github.com/soundcloud/doozerd/store"
 	"log"
+
+	"github.com/zyxar/doozerd/consensus"
+	"github.com/zyxar/doozerd/store"
 )
 
 var (

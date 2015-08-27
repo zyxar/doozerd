@@ -1,9 +1,10 @@
 package test
 
 import (
-	"github.com/soundcloud/doozerd/store"
 	"io"
 	"sync/atomic"
+
+	"github.com/zyxar/doozerd/store"
 )
 
 type FakeProposer struct {

@@ -1,9 +1,10 @@
 package store
 
 import (
-	"github.com/bmizerany/assert"
 	"sort"
 	"testing"
+
+	"github.com/bmizerany/assert"
 )
 
 type kvcm struct {
